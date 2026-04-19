@@ -1,0 +1,54 @@
+[
+  {
+    "id": "019c839c-81c1-78b0-ad64-516044af2034",
+    "creatorId": "019c78ce-33cd-72e0-af59-41d6c257b2ff",
+    "langId": "019c3679-c15a-7fa0-baa0-39771e3cb325",
+    "level": "A2",
+    "name": "Portugal maravilhoso",
+    "description": "full of culture, full of vocabulary, full of good vibes",
+    "logoUrl": null,
+    "isForSale": false,
+    "priceLevel": {
+      "id": "level_3",
+      "description": "Standard tier",
+      "oneTimeDisplayPrice": "€5",
+      "oneTimePrices": { "eur": "500" },
+      "subscriptionDisplayPrice": "€3",
+      "subscriptionPrices": {
+        "aed": 1400,
+        "aud": 500,
+        "cad": 500,
+        "chf": 300,
+        "czk": 6000,
+        "dkk": 2000,
+        "eur": 300,
+        "gbp": 300,
+        "hkd": 2400,
+        "ils": 1000,
+        "isk": 40000,
+        "jpy": 47000,
+        "krw": 440000,
+        "nok": 3100,
+        "nzd": 600,
+        "pln": 1200,
+        "qar": 1100,
+        "sar": 1100,
+        "sek": 3000,
+        "sgd": 400,
+        "twd": 9500,
+        "usd": 350
+      }
+    },
+    "stripeProductId": null,
+    "stripePriceId": null,
+    "stripeSubscriptionPriceId": null,
+    "createdAt": "2026-02-22T04:29:58.079Z",
+    "updatedAt": "2026-02-22T04:29:58.079Z",
+    "language": {
+      "id": "019c3679-c15a-7fa0-baa0-39771e3cb325",
+      "code": "pt",
+      "name": "Portuguese",
+      "nativeName": "português"
+    }
+  }
+]

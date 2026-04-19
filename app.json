@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "lingo-admin",
+    "slug": "lingo-admin",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "lingoadmin",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lingohouse.admin",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.lingohouse.admin"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to upload cover images and media."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "The app needs access to your microphone to record audio for cards."
+        }
+      ],
+      "expo-video"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

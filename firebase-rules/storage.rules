@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function isValidVideo() {
+      return request.resource.size < 500 * 1024 * 1024
+        && request.resource.contentType.matches('video/(mp4|quicktime)');
+    }
+    function isValidImage() {
+      return request.resource.size < 3 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+    function isValidAudio() {
+      return request.resource.size < 3 * 1024 * 1024
+        && request.resource.contentType.matches('audio/(mp4|mpeg|wav)');
+    }
+
+    // Card audio uploads: locked once Firestore document exists
+    match /studioDeckSubmissions/{creatorUid}/{submissionId}/audio/cards/{filename} {
+      allow read: if isOwner(creatorUid);
+      allow write: if isOwner(creatorUid) && isValidAudio()
+        && !firestore.exists(/databases/(default)/documents/studioDeckSubmissions/$(submissionId));
+    }
+
+    // Video uploads
+    match /studioDeckSubmissions/{creatorUid}/{submissionId}/video/{filename} {
+      allow read: if isOwner(creatorUid);
+      allow write: if isOwner(creatorUid) && isValidVideo();
+    }
+
+    // Image uploads (covers, card images)
+    match /studioDeckSubmissions/{creatorUid}/{submissionId}/images/{filename} {
+      allow read: if isOwner(creatorUid);
+      allow write: if isOwner(creatorUid) && isValidImage();
+    }
+
+    // Studio logo uploads
+    match /studios/{uid}/{studioId}/{filename} {
+      allow read: if request.auth != null && isOwner(uid) ;
+      allow write: if isOwner(uid) && isValidImage();
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
