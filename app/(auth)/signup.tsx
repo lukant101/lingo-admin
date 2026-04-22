@@ -136,7 +136,7 @@ export default function SignupScreen() {
             variant="headlineMedium"
             style={{ color: theme.colors.onBackground }}
           >
-            Lingo Creators
+            Lingo Admin
           </Text>
           <Text
             variant="bodyMedium"
@@ -145,7 +145,7 @@ export default function SignupScreen() {
               textAlign: "center",
             }}
           >
-            Sign up for a Lingo House creator account
+            Sign up for a Lingo House admin account
           </Text>
         </View>
 

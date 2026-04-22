@@ -1,4 +1,4 @@
-# Firebase Preview Deployments for Lingo Creators
+# Firebase Preview Deployments for Lingo Admin
 
 Automated preview deployments using Firebase Hosting Preview Channels and Claude Code on the web.
 
@@ -14,7 +14,7 @@ Automated preview deployments using Firebase Hosting Preview Channels and Claude
 ## Prerequisites
 
 - Firebase project already set up (existing Lingo House project works)
-- GitHub repo for Lingo Creators
+- GitHub repo for Lingo Admin
 - Firebase CLI installed locally (for initial setup only)
 
 ---

@@ -123,7 +123,7 @@ export default function LoginScreen() {
             variant="headlineMedium"
             style={{ color: theme.colors.onBackground }}
           >
-            Lingo Creators
+            Lingo Admin
           </Text>
           <Text
             variant="bodyMedium"
@@ -132,7 +132,7 @@ export default function LoginScreen() {
               textAlign: "center",
             }}
           >
-            Sign in to manage your Lingo House creator account
+            Sign in to the Lingo House Admin console
           </Text>
         </View>
 
