@@ -1,3 +1,13 @@
+import { Redirect } from "expo-router";
+
+// Sign-up is disabled in this admin app — admins create their accounts in the
+// lingo-mates web app (which shares the same Firebase auth backend) and then
+// sign in here. Anyone landing on /signup is redirected to the login page.
+export default function SignupScreen() {
+  return <Redirect href="/(auth)/login" />;
+}
+
+/*
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -286,3 +296,4 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+*/

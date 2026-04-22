@@ -222,8 +222,8 @@ export default function LoginScreen() {
             style={styles.button}
           />
         </View>
-
-        <View style={styles.footer}>
+        {/* 
+            <View style={styles.footer}>
           <Text
             variant="bodyMedium"
             style={{ color: theme.colors.onSurfaceVariant }}
@@ -238,7 +238,7 @@ export default function LoginScreen() {
               Create an account
             </Text>
           </Pressable>
-        </View>
+        </View> */}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -267,10 +267,10 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 8,
   },
-  footer: {
-    alignItems: "center",
-    gap: 6,
-  },
+  // footer: {
+  //   alignItems: "center",
+  //   gap: 6,
+  // },
   errorBanner: {
     paddingVertical: 10,
     paddingHorizontal: 12,
