@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
 import {
   AppCheck,
+  getToken,
   initializeAppCheck,
   ReCaptchaV3Provider,
-  getToken,
 } from "firebase/app-check";
 import {
   Auth,
@@ -19,13 +19,13 @@ import { Platform } from "react-native";
 
 // Firebase configuration — shared with lingo-mates so Mates users can sign in.
 const firebaseConfig = {
-  apiKey: "AIzaSyCcaxnxBTfaT2IZkY2gbhvQ0jec8R1olUg",
+  apiKey: "AIzaSyDG9ReFpkLuzhPvPEmMGWmFfGGPNS0kp7g",
   authDomain: "lingo-mates.firebaseapp.com",
   projectId: "lingo-mates",
   storageBucket: "lingo-mates.firebasestorage.app",
   messagingSenderId: "88463646557",
-  appId: "1:88463646557:web:be96d39cbc25b087d052b4",
-  measurementId: "G-V46PDJSK1K",
+  appId: "1:88463646557:web:2e93571faa57aa41d052b4",
+  measurementId: "G-6S0MWWWQWW",
 };
 
 const app: FirebaseApp =
