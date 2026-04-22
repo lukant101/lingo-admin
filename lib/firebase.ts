@@ -48,19 +48,28 @@ function getFirebaseAuth(): Auth {
 
 const auth: Auth = getFirebaseAuth();
 
-const RECAPTCHA_SITE_KEY = "6Lc6xcQsAAAAAGy1TtsTBoTBT93LGd7ui0bpKvdP";
+const RECAPTCHA_SITE_KEY =
+  process.env.EXPO_PUBLIC_FIREBASE_RECAPTCHA_SITE_KEY ?? "";
 
 let appCheck: AppCheck | null = null;
 
-if (
-  Platform.OS === "web" &&
-  typeof document !== "undefined" &&
-  !RECAPTCHA_SITE_KEY.startsWith("<")
-) {
-  appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
-    isTokenAutoRefreshEnabled: true,
-  });
+if (Platform.OS === "web" && typeof document !== "undefined") {
+  // In dev, tell Firebase to mint a debug token instead of calling reCAPTCHA.
+  // The token is printed to the browser console on first load; paste it into
+  // Firebase Console → App Check → Apps → (web app) → Manage debug tokens.
+  if (__DEV__) {
+    (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean })
+      .FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+
+  if (RECAPTCHA_SITE_KEY || __DEV__) {
+    appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(
+        RECAPTCHA_SITE_KEY || "debug-placeholder"
+      ),
+      isTokenAutoRefreshEnabled: true,
+    });
+  }
 }
 
 async function getAppCheckToken(): Promise<string> {
