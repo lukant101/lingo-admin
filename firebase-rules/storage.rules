@@ -5,6 +5,9 @@ service firebase.storage {
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
     function isValidVideo() {
       return request.resource.size < 500 * 1024 * 1024
         && request.resource.contentType.matches('video/(mp4|quicktime)');
@@ -18,29 +21,22 @@ service firebase.storage {
         && request.resource.contentType.matches('audio/(mp4|mpeg|wav)');
     }
 
-    // Card audio uploads: locked once Firestore document exists
-    match /studioDeckSubmissions/{creatorUid}/{submissionId}/audio/cards/{filename} {
-      allow read: if isOwner(creatorUid);
-      allow write: if isOwner(creatorUid) && isValidAudio()
-        && !firestore.exists(/databases/(default)/documents/studioDeckSubmissions/$(submissionId));
+    // Platform deck draft — card audio clips
+    match /platformDeckDrafts/{uid}/{draftId}/audio/cards/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidAudio();
     }
 
-    // Video uploads
-    match /studioDeckSubmissions/{creatorUid}/{submissionId}/video/{filename} {
-      allow read: if isOwner(creatorUid);
-      allow write: if isOwner(creatorUid) && isValidVideo();
+    // Platform deck draft — video
+    match /platformDeckDrafts/{uid}/{draftId}/video/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidVideo();
     }
 
-    // Image uploads (covers, card images)
-    match /studioDeckSubmissions/{creatorUid}/{submissionId}/images/{filename} {
-      allow read: if isOwner(creatorUid);
-      allow write: if isOwner(creatorUid) && isValidImage();
-    }
-
-    // Studio logo uploads
-    match /studios/{uid}/{studioId}/{filename} {
-      allow read: if request.auth != null && isOwner(uid) ;
-      allow write: if isOwner(uid) && isValidImage();
+    // Platform deck draft — cover/card images
+    match /platformDeckDrafts/{uid}/{draftId}/images/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidImage();
     }
 
     // Deny everything else
