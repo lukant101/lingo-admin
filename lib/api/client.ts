@@ -153,3 +153,16 @@ export async function apiPatch<T>(
     body: JSON.stringify(body),
   });
 }
+
+/**
+ * DELETE request helper
+ */
+export async function apiDelete<T>(
+  endpoint: string,
+  params?: Record<string, string>
+): Promise<T> {
+  const url = params
+    ? `${endpoint}?${new URLSearchParams(params).toString()}`
+    : endpoint;
+  return apiFetch<T>(url, { method: "DELETE" });
+}

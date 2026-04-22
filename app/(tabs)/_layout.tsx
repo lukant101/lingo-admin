@@ -57,6 +57,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="platform-decks"
+          options={{
+            title: "Platform Decks",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="cards"
+                size={TAB_ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             title: "Settings",

@@ -194,6 +194,10 @@ function RootLayoutNav() {
                 options={{ title: "Record Audio", presentation: "modal" }}
               />
               <Stack.Screen
+                name="admin"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="terms/creators/[version]"
                 options={{ title: "Creator Agreement", headerShown: false }}
               />
