@@ -8,6 +8,7 @@ import {
 } from "firebase/storage";
 import { Platform } from "react-native";
 import { app } from "@/lib/firebase";
+import { randomId } from "@/lib/uuid";
 
 const storage = getStorage(app);
 
@@ -136,4 +137,27 @@ export function buildLogoPath(
   const ext = filename.split(".").pop() ?? "webp";
   const timestamp = Date.now();
   return `studios/${firebaseUid}/${studioId}/studio_logo_${timestamp}.${ext}`;
+}
+
+export function adminVideoPath(uploadBasePath: string, filename: string): string {
+  const ext = filename.split(".").pop() ?? "mp4";
+  return `${uploadBasePath}/video/${randomId()}.${ext}`;
+}
+
+export function adminCoverImagePath(
+  uploadBasePath: string,
+  variant: "horizontal" | "vertical",
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "jpg";
+  return `${uploadBasePath}/images/cover_${variant}_${randomId()}.${ext}`;
+}
+
+export function adminCardAudioPath(
+  uploadBasePath: string,
+  cardIndex: number,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "m4a";
+  return `${uploadBasePath}/audio/cards/${cardIndex}_${randomId()}.${ext}`;
 }
