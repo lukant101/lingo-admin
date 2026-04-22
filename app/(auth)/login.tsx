@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/Button";
-import { Divider } from "@/components/ui/Divider";
+// import { Divider } from "@/components/ui/Divider";
 import { Input } from "@/components/ui/Input";
-import { SocialAuthButton } from "@/components/ui/SocialAuthButton";
+// import { SocialAuthButton } from "@/components/ui/SocialAuthButton";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { router } from "expo-router";
@@ -153,7 +153,7 @@ export default function LoginScreen() {
             </View>
           )}
 
-          {(isGoogleAuthAvailable || isAppleAuthAvailable) && (
+          {/* {(isGoogleAuthAvailable || isAppleAuthAvailable) && (
             <>
               <View style={styles.socialButtons}>
                 {isGoogleAuthAvailable && (
@@ -176,7 +176,7 @@ export default function LoginScreen() {
 
               <Divider />
             </>
-          )}
+          )} */}
 
           <Input
             label="Email"
