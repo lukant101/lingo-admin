@@ -48,8 +48,7 @@ function getFirebaseAuth(): Auth {
 
 const auth: Auth = getFirebaseAuth();
 
-// TODO: register ReCAPTCHA v3 for lingo-mates and paste the site key here.
-const RECAPTCHA_SITE_KEY = "<PASTE_LINGO_MATES_RECAPTCHA_SITE_KEY>";
+const RECAPTCHA_SITE_KEY = "6Lc6xcQsAAAAAGy1TtsTBoTBT93LGd7ui0bpKvdP";
 
 let appCheck: AppCheck | null = null;
 
