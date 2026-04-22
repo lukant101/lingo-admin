@@ -7,7 +7,6 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { Platform } from "react-native";
-import { randomId } from "@/lib/uuid";
 import { app } from "@/lib/firebase";
 
 const storage = getStorage(app);
@@ -127,45 +126,6 @@ export function getMimeType(filename: string): string {
 }
 
 /**
- * Build a GCS path for a card audio file
- */
-export function buildAudioPath(
-  creatorUid: string,
-  submissionId: string,
-  cardIndex: number,
-  filename: string
-): string {
-  const ext = filename.split(".").pop() ?? "m4a";
-  return `studioDeckSubmissions/${creatorUid}/${submissionId}/audio/cards/${cardIndex}_${randomId()}.${ext}`;
-}
-
-/**
- * Build a GCS path for a cover image
- */
-export function buildCoverImagePath(
-  creatorUid: string,
-  submissionId: string,
-  variant: "horizontal" | "vertical",
-  filename: string
-): string {
-  const ext = filename.split(".").pop() ?? "jpg";
-  return `studioDeckSubmissions/${creatorUid}/${submissionId}/images/cover_${variant}_${randomId()}.${ext}`;
-}
-
-/**
- * Build a GCS path for a card image
- */
-export function buildCardImagePath(
-  creatorUid: string,
-  submissionId: string,
-  cardIndex: number,
-  filename: string
-): string {
-  const ext = filename.split(".").pop() ?? "jpg";
-  return `studioDeckSubmissions/${creatorUid}/${submissionId}/images/card_${cardIndex}_${randomId()}.${ext}`;
-}
-
-/**
  * Build a GCS path for a studio logo (timestamp-based for cache busting)
  */
 export function buildLogoPath(
@@ -176,16 +136,4 @@ export function buildLogoPath(
   const ext = filename.split(".").pop() ?? "webp";
   const timestamp = Date.now();
   return `studios/${firebaseUid}/${studioId}/studio_logo_${timestamp}.${ext}`;
-}
-
-/**
- * Build a GCS path for a video
- */
-export function buildVideoPath(
-  creatorUid: string,
-  submissionId: string,
-  filename: string
-): string {
-  const ext = filename.split(".").pop() ?? "mp4";
-  return `studioDeckSubmissions/${creatorUid}/${submissionId}/video/${randomId()}.${ext}`;
 }

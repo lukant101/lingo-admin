@@ -170,28 +170,12 @@ function RootLayoutNav() {
                 options={{ title: "Edit Studio" }}
               />
               <Stack.Screen
-                name="studio/[studioId]/new-deck"
-                options={{ title: "New Deck" }}
-              />
-              <Stack.Screen
                 name="studio/[studioId]/decks/[deckId]/edit"
                 options={{ title: "Edit Deck" }}
               />
               <Stack.Screen
                 name="studios/[studioId]"
                 options={{ title: "Studio" }}
-              />
-              <Stack.Screen
-                name="submission/[studioId]/[submissionId]/index"
-                options={{ title: "Submission" }}
-              />
-              <Stack.Screen
-                name="submission/[studioId]/[submissionId]/edit"
-                options={{ title: "Edit Submission" }}
-              />
-              <Stack.Screen
-                name="submission/[studioId]/[submissionId]/record"
-                options={{ title: "Record Audio", presentation: "modal" }}
               />
               <Stack.Screen
                 name="admin"
