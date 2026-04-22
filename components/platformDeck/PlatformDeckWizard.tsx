@@ -21,13 +21,11 @@ import {
   resizeForCover,
   type ResizeResult,
 } from "@/lib/imageProcessing";
+import { consumeRecordingResult } from "@/lib/recordingResult";
 import {
   adminCardAudioPath,
   adminCoverImagePath,
   adminVideoPath,
-} from "@/lib/platformDeckStorage";
-import { consumeRecordingResult } from "@/lib/recordingResult";
-import {
   getFileDownloadURL,
   getMimeType,
   uploadFileToStorage,
