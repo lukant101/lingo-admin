@@ -1,7 +1,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   useCallback,
   useMemo,
@@ -52,40 +51,12 @@ function buildCreatorAccount(
 }
 
 export function CreatorAccountProvider({ children }: { children: ReactNode }) {
-  const { user, emailVerified, checkedAuthState } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const [isLoading] = useState(false);
   const [creatorAccount, setCreatorAccount] = useState<
     CreatorAccount | undefined
   >(undefined);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchAccount = useCallback(async () => {
-    if (!user) {
-      setCreatorAccount(undefined);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const data = await getCreator();
-      setCreatorAccount(buildCreatorAccount(data));
-      setError(null);
-    } catch (e) {
-      console.error("Error fetching creator account:", e);
-      setCreatorAccount(undefined);
-      setError(
-        "Could not load your account. Please check your connection and try again."
-      );
-    }
-    setIsLoading(false);
-  }, [user, emailVerified]);
-
-  useEffect(() => {
-    if (!checkedAuthState) return;
-    setIsLoading(true);
-    fetchAccount();
-  }, [checkedAuthState, fetchAccount]);
 
   const refreshCreatorAccount = useCallback(async () => {
     if (!user) return;

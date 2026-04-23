@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/Input";
 // import { SocialAuthButton } from "@/components/ui/SocialAuthButton";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 import { useAuth } from "@/contexts/AuthContext";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -14,7 +14,11 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Snackbar, Text, useTheme } from "react-native-paper";
+
+const REASON_MESSAGES: Record<string, string> = {
+  "not-admin": "This account is not an admin.",
+};
 
 export default function LoginScreen() {
   const {
@@ -27,6 +31,7 @@ export default function LoginScreen() {
     user,
   } = useAuth();
   const theme = useTheme();
+  const { reason } = useLocalSearchParams<{ reason?: string }>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -36,6 +41,12 @@ export default function LoginScreen() {
   const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(
     null
   );
+  const [reasonSnackbarVisible, setReasonSnackbarVisible] = useState(false);
+  const reasonMessage = reason ? REASON_MESSAGES[reason] : undefined;
+
+  useEffect(() => {
+    if (reasonMessage) setReasonSnackbarVisible(true);
+  }, [reasonMessage]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -240,6 +251,13 @@ export default function LoginScreen() {
           </Pressable>
         </View> */}
       </ScrollView>
+      <Snackbar
+        visible={reasonSnackbarVisible}
+        onDismiss={() => setReasonSnackbarVisible(false)}
+        duration={5000}
+      >
+        {reasonMessage ?? ""}
+      </Snackbar>
     </KeyboardAvoidingView>
   );
 }
