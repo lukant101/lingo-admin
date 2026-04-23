@@ -1011,7 +1011,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
 
   // --- Render ---
 
-  if (isLoading || !draft) {
+  if (isLoading || !draft || !initialized) {
     return <LoadingSpinner message="Loading draft..." />;
   }
 
