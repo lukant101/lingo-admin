@@ -49,7 +49,7 @@ export function CollectionPicker({
 
   const filters = useMemo(
     () => ({
-      langVariantId: lang?.code,
+      langVariantCode: lang?.code,
       level: level ?? undefined,
       forKids,
       pageSize: 20,
@@ -294,7 +294,7 @@ export function CollectionPicker({
                 if (!lang || !level) return;
                 createMutation.mutate({
                   title: createTitle,
-                  langVariantId: lang.code,
+                  langVariantCode: lang.code,
                   level,
                   forKids,
                   mature: createMature,

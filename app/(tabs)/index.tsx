@@ -19,7 +19,7 @@ export default function AdminLandingScreen() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["collections", "byLang", lang.code],
     queryFn: () =>
-      listCollections({ langVariantId: lang.code, pageSize: 50 }),
+      listCollections({ langVariantCode: lang.code, pageSize: 50 }),
   });
 
   const collections = data?.data ?? [];

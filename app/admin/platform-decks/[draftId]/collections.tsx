@@ -1,8 +1,8 @@
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import {
+  getCollection,
   getPlatformDeckDraft,
-  listCollections,
 } from "@/lib/api/platformDecks";
 import type { CollectionResponse } from "@/types/collection";
 import { useQuery } from "@tanstack/react-query";
@@ -22,16 +22,7 @@ export default function DeckCollectionsScreen() {
 
   const { data: primaryCollection } = useQuery({
     queryKey: ["collection", draft?.collectionId],
-    queryFn: async (): Promise<CollectionResponse | null> => {
-      if (!draft) return null;
-      const res = await listCollections({
-        langVariantId: draft.langVariantId,
-        level: draft.level,
-        forKids: draft.forKids,
-        pageSize: 50,
-      });
-      return res.data.find((c) => c.id === draft.collectionId) ?? null;
-    },
+    queryFn: (): Promise<CollectionResponse> => getCollection(draft!.collectionId),
     enabled: !!draft,
   });
 

@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/StyledSnackbar";
 import {
   deletePlatformDeckDraft,
+  getCollection,
   getPlatformDeckDraft,
-  listCollections,
 } from "@/lib/api/platformDecks";
 import type { CollectionResponse } from "@/types/collection";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -53,17 +53,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
   const primaryCollectionId = draft?.collectionId;
   const { data: primaryCollection } = useQuery({
     queryKey: ["collection", primaryCollectionId],
-    queryFn: async (): Promise<CollectionResponse | null> => {
-      if (!draft) return null;
-      // No GET /admin/collections/:id endpoint in the contract — look it up via list.
-      const res = await listCollections({
-        langVariantId: draft.langVariantId,
-        level: draft.level,
-        forKids: draft.forKids,
-        pageSize: 50,
-      });
-      return res.data.find((c) => c.id === draft.collectionId) ?? null;
-    },
+    queryFn: (): Promise<CollectionResponse> => getCollection(draft!.collectionId),
     enabled: !!draft && draft.status === "published",
   });
 
