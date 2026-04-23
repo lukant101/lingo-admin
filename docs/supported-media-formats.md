@@ -67,4 +67,4 @@ Bash command for changing extension `mp4` to `m4a` for all files in current dire
 $ for f in *.mp4; do mv -n "$f" "${f%.mp4}.m4a"; done
 ```
 
-for f in \*.m4a; do mv -n "$f" "${f%.m4a}.mp4"; done
+for f in *.m4a; do mv -n "$f" "${f%.m4a}.mp4"; done
