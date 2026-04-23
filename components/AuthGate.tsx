@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Redirect } from "expo-router";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Text, useTheme } from "react-native-paper";
 
@@ -12,10 +12,35 @@ type AuthGateProps = {
  * Protects screens that require authentication.
  * Redirects to login if not authenticated.
  * Shows email verification screen for unverified email/password users.
+ * Signs out non-admins and redirects to login with a reason message.
  */
 export function AuthGate({ children }: AuthGateProps) {
-  const { user, emailVerified, checkedAuthState } = useAuth();
+  const { user, emailVerified, checkedAuthState, signOut } = useAuth();
   const theme = useTheme();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const wasNonAdminRef = useRef(false);
+
+  useEffect(() => {
+    if (!user || !emailVerified) {
+      setIsAdmin(null);
+      return;
+    }
+
+    let cancelled = false;
+    user.getIdTokenResult().then((tokenResult) => {
+      if (cancelled) return;
+      if (tokenResult.claims.role === "admin") {
+        setIsAdmin(true);
+      } else {
+        wasNonAdminRef.current = true;
+        setIsAdmin(false);
+        signOut();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, emailVerified, signOut]);
 
   // Show loading while checking auth state
   if (!checkedAuthState) {
@@ -30,12 +55,26 @@ export function AuthGate({ children }: AuthGateProps) {
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Redirect href={"/(auth)/login" as never} />;
+    const href = wasNonAdminRef.current
+      ? "/(auth)/login?reason=not-admin"
+      : "/(auth)/login";
+    return <Redirect href={href as never} />;
   }
 
   // Show verification screen for unverified email/password users
   if (!emailVerified) {
     return <EmailVerificationScreen />;
+  }
+
+  // Admin check pending or failed — hold on a spinner until the sign-out + redirect lands
+  if (isAdmin !== true) {
+    return (
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
   }
 
   return <>{children}</>;
