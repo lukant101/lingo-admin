@@ -34,7 +34,13 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
   const [startedAt] = useState(() => Date.now());
   const [slowHint, setSlowHint] = useState(false);
 
-  const { data: draft, isLoading } = useQuery({
+  const {
+    data: draft,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["platformDeck", "draft", draftId],
     queryFn: () => getPlatformDeckDraft(draftId),
     refetchInterval: (q) =>
@@ -74,9 +80,62 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     }
   };
 
-  if (isLoading || !draft) {
+  if (isLoading) {
     return <LoadingSpinner message="Loading draft..." />;
   }
+
+  if (!draft) {
+    return (
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <Card>
+          <View style={styles.statusBlock}>
+            <View
+              style={[
+                styles.banner,
+                { backgroundColor: theme.colors.errorContainer },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="alert-circle"
+                size={20}
+                color={theme.colors.onErrorContainer}
+              />
+              <Text
+                variant="bodyMedium"
+                style={{ color: theme.colors.onErrorContainer, flex: 1 }}
+              >
+                {(error as Error)?.message ?? "Failed to load draft."}
+              </Text>
+            </View>
+            <Button
+              title="Retry"
+              onPress={() => refetch()}
+              style={styles.actionButton}
+            />
+            <Button
+              title="Back to drafts"
+              variant="secondary"
+              onPress={() => router.replace(`/admin/platform-decks`)}
+              style={styles.actionButton}
+            />
+          </View>
+        </Card>
+      </ScrollView>
+    );
+  }
+
+  const isPublishedWithDeck =
+    draft.status === "published" && !!draft.deckId;
+  const isPublishedWithoutDeck =
+    draft.status === "published" && !draft.deckId;
+  const isKnownStatus =
+    draft.status === "draft" ||
+    draft.status === "publishing" ||
+    draft.status === "published" ||
+    draft.status === "failed";
 
   return (
     <ScrollView
@@ -85,8 +144,29 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     >
       <Card>
         <Text variant="titleMedium" style={{ marginBottom: 12 }}>
-          {draft.title}
+          {draft.title || "Untitled"}
         </Text>
+
+        {error && (
+          <View
+            style={[
+              styles.banner,
+              { backgroundColor: theme.colors.errorContainer, marginBottom: 12 },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="alert-circle-outline"
+              size={18}
+              color={theme.colors.onErrorContainer}
+            />
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onErrorContainer, flex: 1 }}
+            >
+              Couldn&apos;t refresh status: {(error as Error).message}
+            </Text>
+          </View>
+        )}
 
         {draft.status === "draft" && (
           <View style={styles.statusBlock}>
@@ -169,7 +249,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
           </View>
         )}
 
-        {draft.status === "published" && draft.deckId && (
+        {isPublishedWithDeck && (
           <View style={styles.statusBlock}>
             <View
               style={[
@@ -192,11 +272,56 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
             </View>
           </View>
         )}
+
+        {isPublishedWithoutDeck && (
+          <View style={styles.statusBlock}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text variant="bodyMedium" style={styles.centerText}>
+              Finalizing deck record…
+            </Text>
+          </View>
+        )}
+
+        {!isKnownStatus && (
+          <View style={styles.statusBlock}>
+            <View
+              style={[
+                styles.banner,
+                { backgroundColor: theme.colors.errorContainer },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="help-circle"
+                size={20}
+                color={theme.colors.onErrorContainer}
+              />
+              <Text
+                variant="bodyMedium"
+                style={{ color: theme.colors.onErrorContainer, flex: 1 }}
+              >
+                Unexpected status: {String(draft.status)}
+                {draft.errorCode ? ` (${draft.errorCode})` : ""}.
+              </Text>
+            </View>
+            <Button
+              title="Refresh"
+              onPress={() => refetch()}
+              loading={isFetching}
+              style={styles.actionButton}
+            />
+            <Button
+              title="Back to edit"
+              variant="secondary"
+              onPress={handleBackToEdit}
+              style={styles.actionButton}
+            />
+          </View>
+        )}
       </Card>
 
-      {draft.status === "published" && draft.deckId && (
+      {isPublishedWithDeck && (
         <CollectionMembershipList
-          deckId={draft.deckId}
+          deckId={draft.deckId!}
           initialMemberships={
             primaryCollection
               ? [
