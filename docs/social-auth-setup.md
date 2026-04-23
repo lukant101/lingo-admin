@@ -1,6 +1,6 @@
 # Social Authentication Setup Guide
 
-This guide covers the manual configuration steps required to enable Google Sign-in and Apple Sign-in in the Lingo Creators app.
+This guide covers the manual configuration steps required to enable Google Sign-in and Apple Sign-in in the Lingo Admin app.
 
 ## Prerequisites
 

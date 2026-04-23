@@ -236,11 +236,6 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
               </Text>
             </View>
             <Button
-              title="Back to edit"
-              onPress={handleBackToEdit}
-              style={styles.actionButton}
-            />
-            <Button
               title="Delete draft"
               variant="danger"
               onPress={handleDeleteDraft}
