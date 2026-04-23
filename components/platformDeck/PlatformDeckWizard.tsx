@@ -439,6 +439,10 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       filename
     );
 
+    const rawMime = getMimeType(filename);
+    const audioContentType =
+      rawMime === "video/mp4" ? "audio/mp4" : rawMime;
+
     dispatch({
       type: "UPDATE_CARD",
       index: cardIndex,
@@ -449,7 +453,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       await uploadFileToStorage({
         localUri: uri,
         gcsPath,
-        contentType: getMimeType(filename),
+        contentType: audioContentType,
         onProgress: (progress) => {
           dispatch({
             type: "UPDATE_CARD",

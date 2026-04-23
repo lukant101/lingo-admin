@@ -42,8 +42,9 @@ export const FILE_LIMITS: Record<FileCategory, FileLimit> = {
       "audio/wave",
       "audio/x-wav",
       "audio/vnd.wave",
+      "video/mp4", // Some browsers (notably Safari) use video/mp4 for M4A audio-only files
     ],
-    allowedExtensions: ["m4a", "mp3", "wav"],
+    allowedExtensions: ["m4a", "mp3", "mp4", "wav"],
     label: "Audio",
   },
 };

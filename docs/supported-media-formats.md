@@ -20,10 +20,10 @@
 ## Current Support
 
 - video support: input containers: mp4, mov; output: hls, H.264 AAC mp4
-- audio support: (no transcoding) m4a (AAC), mp3, wav
+- audio support: (no transcoding) m4a and mp4 (AAC), mp3, wav
 - image support: webp (preferred), jpeg/jpg, png
 
-Note: we could accept mp4 for audio; mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
+Note: mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
 
 ### Maximum file size
 
@@ -66,3 +66,5 @@ Bash command for changing extension `mp4` to `m4a` for all files in current dire
 ```
 $ for f in *.mp4; do mv -n "$f" "${f%.mp4}.m4a"; done
 ```
+
+for f in \*.m4a; do mv -n "$f" "${f%.m4a}.mp4"; done
