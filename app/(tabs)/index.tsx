@@ -12,8 +12,9 @@ import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionResponse } from "@/types/collection";
 import type { DeckLevel } from "@/types/langs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
   Button as PaperButton,
   Chip,
@@ -100,22 +101,29 @@ export default function AdminLandingScreen() {
 
 function CollectionRow({ collection }: { collection: CollectionResponse }) {
   const theme = useTheme();
+  const router = useRouter();
   const tags: string[] = [collection.level];
   if (collection.forKids) tags.push("kids");
   if (collection.mature) tags.push("mature");
 
   return (
-    <Card>
-      <Text variant="titleMedium" numberOfLines={1}>
-        {collection.title}
-      </Text>
-      <Text
-        variant="bodySmall"
-        style={{ color: theme.colors.onSurfaceVariant }}
-      >
-        {tags.join(" · ")}
-      </Text>
-    </Card>
+    <Pressable
+      onPress={() =>
+        router.push(`/admin/collections/${collection.id}` as never)
+      }
+    >
+      <Card>
+        <Text variant="titleMedium" numberOfLines={1}>
+          {collection.title}
+        </Text>
+        <Text
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          {tags.join(" · ")}
+        </Text>
+      </Card>
+    </Pressable>
   );
 }
 

@@ -27,3 +27,14 @@ export type CollectionDeckResponse = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CollectionDeckItem = {
+  deckId: string;
+  sortOrder: number;
+  published: boolean;
+  title: string;
+};
+
+export type CollectionWithDecksResponse = CollectionResponse & {
+  decks: CollectionDeckItem[];
+};

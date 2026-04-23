@@ -3,6 +3,7 @@ import type { DeckLevel } from "@/types/langs";
 import type {
   CollectionDeckResponse,
   CollectionResponse,
+  CollectionWithDecksResponse,
   PaginatedCollections,
 } from "@/types/collection";
 import type {
@@ -56,8 +57,10 @@ export async function createCollection(
 
 export async function getCollection(
   collectionId: string
-): Promise<CollectionResponse> {
-  return apiGet<CollectionResponse>(`/admin/collections/${collectionId}`);
+): Promise<CollectionWithDecksResponse> {
+  return apiGet<CollectionWithDecksResponse>(
+    `/admin/collections/${collectionId}`
+  );
 }
 
 // --- Platform-deck drafts ---
