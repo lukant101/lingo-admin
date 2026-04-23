@@ -5,14 +5,19 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import {
   createPlatformDeckDraft,
   getCollection,
+  listPlatformDeckDrafts,
 } from "@/lib/api/platformDecks";
 import { DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionDeckItem } from "@/types/collection";
+import type {
+  PlatformDeckDraftResponse,
+  PlatformDeckDraftStatus,
+} from "@/types/platformDeck";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
   Dialog,
   Button as PaperButton,
@@ -21,8 +26,26 @@ import {
   useTheme,
 } from "react-native-paper";
 
+const DRAFT_STATUS_META: Record<
+  PlatformDeckDraftStatus,
+  { label: string; icon: string }
+> = {
+  draft: { label: "Draft", icon: "pencil-outline" },
+  publishing: { label: "Publishing", icon: "progress-upload" },
+  published: { label: "Published", icon: "check-circle" },
+  failed: { label: "Failed", icon: "alert-circle" },
+};
+
+function routeForDraft(draft: PlatformDeckDraftResponse): string {
+  if (draft.status === "draft") return `/admin/platform-decks/${draft.id}/edit`;
+  if (draft.status === "published")
+    return `/admin/platform-decks/${draft.id}/collections`;
+  return `/admin/platform-decks/${draft.id}/publish`;
+}
+
 export default function CollectionDetailScreen() {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const { collectionId } = useLocalSearchParams<{ collectionId: string }>();
   const [newDeckOpen, setNewDeckOpen] = useState(false);
 
@@ -32,10 +55,39 @@ export default function CollectionDetailScreen() {
     enabled: !!collectionId,
   });
 
+  const { data: draftsData } = useQuery({
+    queryKey: ["platformDecks", "drafts", "byCollection", collectionId],
+    queryFn: () =>
+      listPlatformDeckDrafts({ collectionId: collectionId!, pageSize: 50 }),
+    enabled: !!collectionId,
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!collectionId) return;
+      queryClient.invalidateQueries({
+        queryKey: ["platformDecks", "drafts", "byCollection", collectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["collection", collectionId],
+      });
+    }, [collectionId, queryClient])
+  );
+
   const sortedDecks = useMemo(() => {
     if (!data?.decks) return [];
     return [...data.decks].sort((a, b) => a.sortOrder - b.sortOrder);
   }, [data?.decks]);
+
+  const inFlightDrafts = useMemo(() => {
+    const drafts = draftsData?.data ?? [];
+    return drafts
+      .filter((d) => d.status !== "published")
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+  }, [draftsData?.data]);
 
   if (!collectionId) return null;
 
@@ -80,6 +132,22 @@ export default function CollectionDetailScreen() {
             >
               New deck
             </PaperButton>
+
+            {inFlightDrafts.length > 0 && (
+              <>
+                <Text
+                  variant="titleSmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  Drafts in progress
+                </Text>
+                <View style={styles.list}>
+                  {inFlightDrafts.map((draft) => (
+                    <DraftRow key={draft.id} draft={draft} />
+                  ))}
+                </View>
+              </>
+            )}
 
             <Text
               variant="titleSmall"
@@ -196,6 +264,54 @@ function NewDeckDialog({
         </Dialog.Actions>
       </Dialog>
     </Portal>
+  );
+}
+
+function DraftRow({ draft }: { draft: PlatformDeckDraftResponse }) {
+  const theme = useTheme();
+  const router = useRouter();
+  const meta = DRAFT_STATUS_META[draft.status];
+  const updated = new Date(draft.updatedAt).toLocaleDateString();
+  return (
+    <Pressable onPress={() => router.push(routeForDraft(draft) as never)}>
+      <Card>
+        <View style={styles.deckRow}>
+          <View style={{ flex: 1 }}>
+            <Text variant="titleMedium" numberOfLines={1}>
+              {draft.title || "Untitled"}
+            </Text>
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              Updated {updated}
+            </Text>
+          </View>
+          <View style={styles.statusCell}>
+            <MaterialCommunityIcons
+              name={meta.icon as never}
+              size={18}
+              color={
+                draft.status === "failed"
+                  ? theme.colors.error
+                  : theme.colors.onSurfaceVariant
+              }
+            />
+            <Text
+              variant="labelSmall"
+              style={{
+                color:
+                  draft.status === "failed"
+                    ? theme.colors.error
+                    : theme.colors.onSurfaceVariant,
+              }}
+            >
+              {meta.label}
+            </Text>
+          </View>
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 
