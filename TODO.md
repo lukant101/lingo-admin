@@ -2,6 +2,8 @@
 
 - test platform deck submission
 
+- you should not be able to edit a failed submission
+
 ### Down the line
 
 - deck deletion

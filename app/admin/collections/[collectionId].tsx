@@ -31,14 +31,14 @@ const DRAFT_STATUS_META: Record<
   { label: string; icon: string }
 > = {
   draft: { label: "Draft", icon: "pencil-outline" },
-  publishing: { label: "Publishing", icon: "progress-upload" },
-  published: { label: "Published", icon: "check-circle" },
+  processing_started: { label: "Publishing", icon: "progress-upload" },
+  processing_completed: { label: "Published", icon: "check-circle" },
   failed: { label: "Failed", icon: "alert-circle" },
 };
 
 function routeForDraft(draft: PlatformDeckDraftResponse): string {
   if (draft.status === "draft") return `/admin/platform-decks/${draft.id}/edit`;
-  if (draft.status === "published")
+  if (draft.status === "processing_completed")
     return `/admin/platform-decks/${draft.id}/collections`;
   return `/admin/platform-decks/${draft.id}/publish`;
 }
@@ -82,7 +82,7 @@ export default function CollectionDetailScreen() {
   const inFlightDrafts = useMemo(() => {
     const drafts = draftsData?.data ?? [];
     return drafts
-      .filter((d) => d.status !== "published")
+      .filter((d) => d.status !== "processing_completed")
       .sort(
         (a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
