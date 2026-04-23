@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import {
+  useSelectedLanguage,
+  type LanguageSelection,
+} from "@/hooks/useSelectedLanguage";
 import { createCollection, listCollections } from "@/lib/api/platformDecks";
 import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionResponse } from "@/types/collection";
@@ -20,20 +24,21 @@ import {
   useTheme,
 } from "react-native-paper";
 
-type LangSelection = { code: string; name: string };
-
-const DEFAULT_LANG: LangSelection = { code: "en-ca", name: "English (Canadian)" };
-
 export default function AdminLandingScreen() {
   const theme = useTheme();
-  const [lang, setLang] = useState<LangSelection>(DEFAULT_LANG);
+  const { lang, setLang } = useSelectedLanguage();
   const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["collections", "byLang", lang.code],
+    queryKey: ["collections", "byLang", lang?.code],
     queryFn: () =>
-      listCollections({ langVariantCode: lang.code, pageSize: 50 }),
+      listCollections({ langVariantCode: lang!.code, pageSize: 50 }),
+    enabled: !!lang,
   });
+
+  if (!lang) {
+    return <LoadingSpinner message="Loading..." />;
+  }
 
   const collections = data?.data ?? [];
 
@@ -116,7 +121,7 @@ function CollectionRow({ collection }: { collection: CollectionResponse }) {
 
 type NewCollectionDialogProps = {
   visible: boolean;
-  lang: LangSelection;
+  lang: LanguageSelection;
   onDismiss: () => void;
 };
 
