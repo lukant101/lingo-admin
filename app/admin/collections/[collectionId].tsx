@@ -1,17 +1,30 @@
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { getCollection } from "@/lib/api/platformDecks";
+import {
+  createPlatformDeckDraft,
+  getCollection,
+} from "@/lib/api/platformDecks";
+import { DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionDeckItem } from "@/types/collection";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useQuery } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import {
+  Dialog,
+  Button as PaperButton,
+  Portal,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 export default function CollectionDetailScreen() {
   const theme = useTheme();
   const { collectionId } = useLocalSearchParams<{ collectionId: string }>();
+  const [newDeckOpen, setNewDeckOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["collection", collectionId],
@@ -59,6 +72,15 @@ export default function CollectionDetailScreen() {
               </Text>
             </View>
 
+            <PaperButton
+              mode="contained"
+              icon="plus"
+              onPress={() => setNewDeckOpen(true)}
+              style={styles.newButton}
+            >
+              New deck
+            </PaperButton>
+
             <Text
               variant="titleSmall"
               style={{ color: theme.colors.onSurfaceVariant }}
@@ -85,7 +107,95 @@ export default function CollectionDetailScreen() {
           </>
         )}
       </ScrollView>
+      {collectionId && (
+        <NewDeckDialog
+          visible={newDeckOpen}
+          collectionId={collectionId}
+          onDismiss={() => setNewDeckOpen(false)}
+        />
+      )}
     </>
+  );
+}
+
+type NewDeckDialogProps = {
+  visible: boolean;
+  collectionId: string;
+  onDismiss: () => void;
+};
+
+function NewDeckDialog({
+  visible,
+  collectionId,
+  onDismiss,
+}: NewDeckDialogProps) {
+  const theme = useTheme();
+  const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: createPlatformDeckDraft,
+    onSuccess: (draft) => {
+      setTitle("");
+      setErr(null);
+      onDismiss();
+      router.push(`/admin/platform-decks/${draft.id}/edit` as never);
+    },
+    onError: (error: Error) => {
+      setErr(error.message || "Failed to create deck");
+    },
+  });
+
+  const canCreate = title.trim().length > 0 && !mutation.isPending;
+
+  const handleDismiss = () => {
+    if (mutation.isPending) return;
+    setTitle("");
+    setErr(null);
+    onDismiss();
+  };
+
+  return (
+    <Portal>
+      <Dialog visible={visible} onDismiss={handleDismiss} style={styles.dialog}>
+        <Dialog.Title>New deck</Dialog.Title>
+        <Dialog.Content>
+          <View style={styles.dialogBody}>
+            <Input
+              label="Deck title"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={200}
+            />
+            {err && (
+              <Text variant="bodySmall" style={{ color: theme.colors.error }}>
+                {err}
+              </Text>
+            )}
+          </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="Cancel"
+            variant="outline"
+            onPress={handleDismiss}
+            disabled={mutation.isPending}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Create"
+            loading={mutation.isPending}
+            disabled={!canCreate}
+            onPress={() => {
+              setErr(null);
+              mutation.mutate({ title, collectionId });
+            }}
+            style={{ flex: 1 }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
   );
 }
 
@@ -135,8 +245,19 @@ const styles = StyleSheet.create({
   header: {
     gap: 4,
   },
+  newButton: {
+    alignSelf: "flex-start",
+  },
   list: {
     gap: 8,
+  },
+  dialog: {
+    width: "90%",
+    maxWidth: DIALOG_MAX_WIDTH,
+    marginHorizontal: "auto",
+  },
+  dialogBody: {
+    gap: 12,
   },
   deckRow: {
     flexDirection: "row",
