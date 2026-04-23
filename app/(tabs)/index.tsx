@@ -291,9 +291,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dialog: {
+    width: "90%",
     maxWidth: DIALOG_MAX_WIDTH,
-    alignSelf: "center",
-    width: "100%",
+    marginHorizontal: "auto",
   },
   dialogBody: {
     paddingVertical: 12,
