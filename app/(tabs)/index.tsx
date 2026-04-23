@@ -1,12 +1,24 @@
 import LanguageSearch from "@/components/LanguageSearch";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { listCollections } from "@/lib/api/platformDecks";
+import { createCollection, listCollections } from "@/lib/api/platformDecks";
+import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionResponse } from "@/types/collection";
-import { useQuery } from "@tanstack/react-query";
+import type { DeckLevel } from "@/types/langs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import {
+  Button as PaperButton,
+  Chip,
+  Dialog,
+  Portal,
+  Switch,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 type LangSelection = { code: string; name: string };
 
@@ -15,6 +27,7 @@ const DEFAULT_LANG: LangSelection = { code: "en-ca", name: "English (Canadian)" 
 export default function AdminLandingScreen() {
   const theme = useTheme();
   const [lang, setLang] = useState<LangSelection>(DEFAULT_LANG);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["collections", "byLang", lang.code],
@@ -29,9 +42,18 @@ export default function AdminLandingScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       contentContainerStyle={styles.content}
     >
-      <Text variant="headlineSmall">Platform deck collections</Text>
+      <Text variant="headlineSmall">Collections</Text>
 
       <LanguageSearch value={lang} onSelect={setLang} />
+
+      <PaperButton
+        mode="contained"
+        icon="plus"
+        onPress={() => setCreateOpen(true)}
+        style={styles.newButton}
+      >
+        New collection
+      </PaperButton>
 
       {isLoading && <LoadingSpinner message="Loading collections..." />}
 
@@ -61,6 +83,12 @@ export default function AdminLandingScreen() {
           ))}
         </View>
       )}
+
+      <NewCollectionDialog
+        visible={createOpen}
+        lang={lang}
+        onDismiss={() => setCreateOpen(false)}
+      />
     </ScrollView>
   );
 }
@@ -86,12 +114,186 @@ function CollectionRow({ collection }: { collection: CollectionResponse }) {
   );
 }
 
+type NewCollectionDialogProps = {
+  visible: boolean;
+  lang: LangSelection;
+  onDismiss: () => void;
+};
+
+function NewCollectionDialog({
+  visible,
+  lang,
+  onDismiss,
+}: NewCollectionDialogProps) {
+  const theme = useTheme();
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [level, setLevel] = useState<DeckLevel | null>(null);
+  const [forKids, setForKids] = useState(false);
+  const [mature, setMature] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const reset = () => {
+    setTitle("");
+    setLevel(null);
+    setForKids(false);
+    setMature(false);
+    setError(null);
+  };
+
+  const mutation = useMutation({
+    mutationFn: createCollection,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collections", "byLang", lang.code] });
+      reset();
+      onDismiss();
+    },
+    onError: (err: Error) => {
+      setError(err.message || "Failed to create collection");
+    },
+  });
+
+  const canCreate =
+    title.trim().length > 0 && !!level && !mutation.isPending;
+
+  const handleDismiss = () => {
+    if (mutation.isPending) return;
+    reset();
+    onDismiss();
+  };
+
+  return (
+    <Portal>
+      <Dialog
+        visible={visible}
+        onDismiss={handleDismiss}
+        style={styles.dialog}
+      >
+        <Dialog.Title>New collection</Dialog.Title>
+        <Dialog.ScrollArea>
+          <ScrollView>
+            <View style={styles.dialogBody}>
+              <Input
+                label="Title"
+                value={title}
+                onChangeText={setTitle}
+                maxLength={200}
+              />
+
+              <View>
+                <Text
+                  variant="labelMedium"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  Language
+                </Text>
+                <Text variant="bodyMedium">{lang.name}</Text>
+              </View>
+
+              <View>
+                <Text
+                  variant="labelMedium"
+                  style={{
+                    color: theme.colors.onSurfaceVariant,
+                    marginBottom: 4,
+                  }}
+                >
+                  Level
+                </Text>
+                <View style={styles.chipRow}>
+                  {DECK_LEVELS.map((l) => (
+                    <Chip
+                      key={l}
+                      mode="outlined"
+                      selected={level === l}
+                      onPress={() => setLevel(level === l ? null : l)}
+                    >
+                      {l}
+                    </Chip>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text variant="bodyMedium">For kids</Text>
+                <Switch value={forKids} onValueChange={setForKids} />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text variant="bodyMedium">Mature content</Text>
+                <Switch value={mature} onValueChange={setMature} />
+              </View>
+
+              {error && (
+                <Text
+                  variant="bodySmall"
+                  style={{ color: theme.colors.error }}
+                >
+                  {error}
+                </Text>
+              )}
+            </View>
+          </ScrollView>
+        </Dialog.ScrollArea>
+        <Dialog.Actions>
+          <Button
+            title="Cancel"
+            variant="outline"
+            onPress={handleDismiss}
+            disabled={mutation.isPending}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Create"
+            loading={mutation.isPending}
+            disabled={!canCreate}
+            onPress={() => {
+              if (!level) return;
+              setError(null);
+              mutation.mutate({
+                title,
+                langVariantCode: lang.code,
+                level,
+                forKids,
+                mature,
+              });
+            }}
+            style={{ flex: 1 }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     padding: 16,
     gap: 16,
   },
+  newButton: {
+    alignSelf: "flex-start",
+  },
   list: {
     gap: 8,
+  },
+  dialog: {
+    maxWidth: DIALOG_MAX_WIDTH,
+    alignSelf: "center",
+    width: "100%",
+  },
+  dialogBody: {
+    paddingVertical: 12,
+    gap: 16,
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

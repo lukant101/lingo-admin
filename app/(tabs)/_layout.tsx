@@ -33,10 +33,10 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Dashboard",
+            title: "Collections",
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
-                name="view-dashboard"
+                name="folder-multiple"
                 size={TAB_ICON_SIZE}
                 color={color}
               />
