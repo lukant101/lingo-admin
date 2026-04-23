@@ -30,7 +30,7 @@ export default function DeckCollectionsScreen() {
   if (isLoading || !draft) {
     return <LoadingSpinner message="Loading deck..." />;
   }
-  if (draft.status !== "published" || !draft.deckId) {
+  if (draft.status !== "processing_completed" || !draft.deckId) {
     return <Redirect href={`/admin/platform-decks/${draftId}/publish`} />;
   }
 

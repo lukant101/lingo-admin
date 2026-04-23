@@ -2,8 +2,8 @@ import type { DeckLevel } from "@/types/langs";
 
 export type PlatformDeckDraftStatus =
   | "draft"
-  | "publishing"
-  | "published"
+  | "processing_started"
+  | "processing_completed"
   | "failed";
 
 export type PlatformDeckDraftCard = {

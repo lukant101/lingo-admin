@@ -17,14 +17,14 @@ const STATUS_META: Record<
   { label: string; icon: string }
 > = {
   draft: { label: "Draft", icon: "pencil-outline" },
-  publishing: { label: "Publishing", icon: "progress-upload" },
-  published: { label: "Published", icon: "check-circle" },
+  processing_started: { label: "Publishing", icon: "progress-upload" },
+  processing_completed: { label: "Published", icon: "check-circle" },
   failed: { label: "Failed", icon: "alert-circle" },
 };
 
 function routeForDraft(draft: PlatformDeckDraftResponse): string {
   if (draft.status === "draft") return `/admin/platform-decks/${draft.id}/edit`;
-  if (draft.status === "published")
+  if (draft.status === "processing_completed")
     return `/admin/platform-decks/${draft.id}/collections`;
   return `/admin/platform-decks/${draft.id}/publish`;
 }
@@ -41,8 +41,10 @@ export default function PlatformDecksLandingScreen() {
   if (isLoading) return <LoadingSpinner message="Loading decks..." />;
 
   const drafts = data?.data ?? [];
-  const inFlight = drafts.filter((d) => d.status !== "published");
-  const published = drafts.filter((d) => d.status === "published");
+  const inFlight = drafts.filter((d) => d.status !== "processing_completed");
+  const published = drafts.filter(
+    (d) => d.status === "processing_completed"
+  );
 
   return (
     <ScrollView
@@ -150,7 +152,7 @@ function DraftRow({
               color={
                 draft.status === "failed"
                   ? theme.colors.error
-                  : draft.status === "published"
+                  : draft.status === "processing_completed"
                     ? theme.colors.primary
                     : theme.colors.onSurfaceVariant
               }

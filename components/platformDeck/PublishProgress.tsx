@@ -44,11 +44,11 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     queryKey: ["platformDeck", "draft", draftId],
     queryFn: () => getPlatformDeckDraft(draftId),
     refetchInterval: (q) =>
-      q.state.data?.status === "publishing" ? POLL_MS : false,
+      q.state.data?.status === "processing_started" ? POLL_MS : false,
   });
 
   useEffect(() => {
-    if (draft?.status !== "publishing") return;
+    if (draft?.status !== "processing_started") return;
     const t = setInterval(() => {
       if (Date.now() - startedAt > SLOW_WARN_MS) setSlowHint(true);
     }, 10_000);
@@ -60,7 +60,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
   const { data: primaryCollection } = useQuery({
     queryKey: ["collection", primaryCollectionId],
     queryFn: (): Promise<CollectionResponse> => getCollection(draft!.collectionId),
-    enabled: !!draft && draft.status === "published",
+    enabled: !!draft && draft.status === "processing_completed",
   });
 
   const handleBackToEdit = () => {
@@ -128,13 +128,13 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
   }
 
   const isPublishedWithDeck =
-    draft.status === "published" && !!draft.deckId;
+    draft.status === "processing_completed" && !!draft.deckId;
   const isPublishedWithoutDeck =
-    draft.status === "published" && !draft.deckId;
+    draft.status === "processing_completed" && !draft.deckId;
   const isKnownStatus =
     draft.status === "draft" ||
-    draft.status === "publishing" ||
-    draft.status === "published" ||
+    draft.status === "processing_started" ||
+    draft.status === "processing_completed" ||
     draft.status === "failed";
 
   return (
@@ -184,7 +184,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
           </View>
         )}
 
-        {draft.status === "publishing" && (
+        {draft.status === "processing_started" && (
           <View style={styles.statusBlock}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text variant="bodyMedium" style={styles.centerText}>
