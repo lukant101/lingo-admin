@@ -20,8 +20,10 @@
 ## Current Support
 
 - video support: input containers: mp4, mov; output: hls, H.264 AAC mp4
-- audio support: (no transcoding) mp4 (AAC), mp3, wav
+- audio support: (no transcoding) m4a (AAC), mp3, wav
 - image support: webp (preferred), jpeg/jpg, png
+
+Note: we could accept mp4 for audio; mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
 
 ### Maximum file size
 
@@ -57,3 +59,10 @@ Note that reviewers see the original video uploaded; most mp4 and mov videos wil
 ## Services Used
 
 - we use [GCP Transcoder API ](https://docs.cloud.google.com/transcoder/docs) for video and audio transcoding
+- for `mp4` audio-only files that have AAC codec, just change the extension to `m4a`.
+
+Bash command for changing extension `mp4` to `m4a` for all files in current directory
+
+```
+$ for f in *.mp4; do mv -n "$f" "${f%.mp4}.m4a"; done
+```

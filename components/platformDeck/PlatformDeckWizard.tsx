@@ -1044,6 +1044,16 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         labels={STEP_LABELS}
       />
 
+      <View style={styles.deckTitleBar}>
+        <Text
+          variant="titleMedium"
+          numberOfLines={1}
+          style={{ color: theme.colors.onSurface }}
+        >
+          {state.title || "Untitled deck"}
+        </Text>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -1291,6 +1301,10 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 24,
     gap: 16,
+  },
+  deckTitleBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   stepTitle: {
     marginBottom: 12,
