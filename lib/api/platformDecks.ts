@@ -15,7 +15,7 @@ import type {
 // --- Collections ---
 
 export type ListCollectionsQuery = {
-  langVariantId?: string;
+  langVariantCode?: string;
   level?: DeckLevel;
   forKids?: boolean;
   page?: number;
@@ -26,7 +26,7 @@ export async function listCollections(
   query: ListCollectionsQuery = {}
 ): Promise<PaginatedCollections> {
   const params: Record<string, string> = {};
-  if (query.langVariantId) params.langVariantId = query.langVariantId;
+  if (query.langVariantCode) params.langVariantCode = query.langVariantCode;
   if (query.level) params.level = query.level;
   if (query.forKids != null) params.forKids = String(query.forKids);
   if (query.page != null) params.page = String(query.page);
@@ -39,7 +39,7 @@ export async function listCollections(
 
 export type CreateCollectionInput = {
   title: string;
-  langVariantId: string;
+  langVariantCode: string;
   level: DeckLevel;
   forKids: boolean;
   mature: boolean;
@@ -52,6 +52,12 @@ export async function createCollection(
     ...input,
     title: input.title.trim(),
   });
+}
+
+export async function getCollection(
+  collectionId: string
+): Promise<CollectionResponse> {
+  return apiGet<CollectionResponse>(`/admin/collections/${collectionId}`);
 }
 
 // --- Platform-deck drafts ---
