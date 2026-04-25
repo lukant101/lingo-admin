@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --clear --web",
     "build:web": "npx expo export --platform web",
-    "deploy:web": "EXPO_PUBLIC_API_URL=https://api.lingohouse.app EXPO_PUBLIC_GIT_SHA=$(git rev-parse --short HEAD) npm run build:web && npx firebase-tools deploy --only hosting --project lingohouse-admin",
+    "deploy:web": "EXPO_PUBLIC_API_URL=https://api.lingohouse.app EXPO_PUBLIC_GIT_SHA=$(git rev-parse --short HEAD) npm run build:web && npx firebase-tools deploy --only hosting --project lingo-mates",
     "deploy:storage-rules": "npx firebase-tools deploy --only storage --project lingo-mates --config firebase-rules/firebase.json",
     "prepare": "husky",
     "format": "prettier --write ."
