@@ -11,23 +11,23 @@ export default function Root({ children }: { children: React.ReactNode }) {
           content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
 
-        <title>Lingo House Creators</title>
+        <title>Lingo House Admin</title>
         <meta
           name="description"
-          content="Manage your Lingo House creator account, build language learning content, and grow your audience."
+          content="Internal admin console for Lingo House — manage studios, platform decks, and creator applications."
         />
         <meta name="theme-color" content="#C97C3B" />
 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        <meta property="og:title" content="Lingo House Creators" />
+        <meta property="og:title" content="Lingo House Admin" />
         <meta
           property="og:description"
-          content="Manage your Lingo House creator account, build language learning content, and grow your audience."
+          content="Internal admin console for Lingo House — manage studios, platform decks, and creator applications."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://creators.lingohouse.app" />
+        <meta property="og:url" content="https://admin.lingohouse.app" />
 
         <ScrollViewStyleReset />
       </head>
