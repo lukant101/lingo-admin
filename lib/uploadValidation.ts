@@ -66,7 +66,7 @@ function formatSize(bytes: number): string {
 export const MIN_AUDIO_DURATION_MS = 500;
 export const MAX_AUDIO_DURATION_MS = 10_000;
 export const MIN_VIDEO_DURATION_MS = 10_000;
-export const MAX_VIDEO_DURATION_MS = 180_000;
+export const MAX_VIDEO_DURATION_MS = 300_000;
 
 export const MIN_VIDEO_DIMENSIONS = { width: 720, height: 1280 };
 export const MAX_VIDEO_DIMENSIONS = { width: 1080, height: 1920 };

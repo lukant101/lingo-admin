@@ -1073,7 +1073,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              9:16 vertical, 10 seconds to 3 minutes long
+              9:16 vertical, 10 seconds to 5 minutes long
             </Text>
             <VideoPickerField
               media={state.video}
