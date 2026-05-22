@@ -11,6 +11,7 @@ import {
   type SnackbarState,
 } from "@/components/ui/StyledSnackbar";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { ApiClientError } from "@/lib/api/client";
 import {
   getPlatformDeckDraft,
   publishPlatformDeckDraft,
@@ -477,11 +478,16 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           : c
       );
       await patchCards(nextCards);
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? `Upload failed: ${err.message}`
+          : "Upload failed";
+      console.error("Card audio upload failed", err);
       dispatch({
         type: "UPDATE_CARD",
         index: cardIndex,
-        card: { isUploading: false, error: "Upload failed" },
+        card: { isUploading: false, error: message },
       });
     }
   };
