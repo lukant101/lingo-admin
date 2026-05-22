@@ -29,7 +29,7 @@ Note: mp4 is generally used for video, but it could be audio only; for example, 
 
 - images: 3 MB (up to HD resolution)
 - audio: 3 MB (up to 10 seconds)
-- video: 500 MB (up to 3 minutes)
+- video: 500 MB (up to 5 minutes)
 
 ### Implementation Notes
 
