@@ -24,6 +24,7 @@ export type PlatformDeckDraftResponse = {
   horizontalImageSourcePath: string | null;
   verticalImageSourcePath: string | null;
   videoSourcePath: string | null;
+  audioSourcePath: string | null;
   cards: PlatformDeckDraftCard[];
   deckId: string | null;
   errorCode: string | null;

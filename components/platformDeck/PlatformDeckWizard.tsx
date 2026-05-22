@@ -1,3 +1,4 @@
+import { AudioPickerField } from "@/components/submission/AudioPickerField";
 import { CardEditor } from "@/components/submission/CardEditor";
 import { ImagePickerField } from "@/components/submission/ImagePickerField";
 import { StepIndicator } from "@/components/submission/StepIndicator";
@@ -26,6 +27,7 @@ import { consumeRecordingResult } from "@/lib/recordingResult";
 import {
   adminCardAudioPath,
   adminCoverImagePath,
+  adminDeckAudioPath,
   adminVideoPath,
   getFileDownloadURL,
   getMimeType,
@@ -34,9 +36,11 @@ import {
 import {
   FILE_LIMITS,
   MAX_AUDIO_DURATION_MS,
+  MAX_DECK_AUDIO_DURATION_MS,
   MAX_VIDEO_DIMENSIONS,
   MAX_VIDEO_DURATION_MS,
   MIN_AUDIO_DURATION_MS,
+  MIN_DECK_AUDIO_DURATION_MS,
   MIN_VIDEO_DIMENSIONS,
   MIN_VIDEO_DURATION_MS,
   validateFile,
@@ -59,13 +63,16 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { SegmentedButtons, Text, useTheme } from "react-native-paper";
 
 // Step 1 = Collection (set by /new screen, always complete in the wizard)
 type WizardStep = 2 | 3 | 4 | 5;
 
-const STEP_LABELS = ["Collection", "Video", "Images", "Cards", "Publish"];
+const STEP_LABELS = ["Collection", "Media", "Images", "Cards", "Publish"];
 const MAX_CARD_TEXT = 1000;
+
+// A platform deck carries either a video or a long audio clip — never both.
+type MediaKind = "video" | "audio";
 
 type PlatformDeckWizardProps = {
   draftId: string;
@@ -77,6 +84,8 @@ type EditState = {
   coverHorizontal: MediaUpload | null;
   coverVertical: MediaUpload | null;
   video: MediaUpload | null;
+  deckAudio: MediaUpload | null;
+  mediaKind: MediaKind;
   isSaving: boolean;
   isPublishing: boolean;
   activeCardForRecording: number | null;
@@ -93,6 +102,8 @@ type EditAction =
   | { type: "SET_COVER_HORIZONTAL"; media: MediaUpload | null }
   | { type: "SET_COVER_VERTICAL"; media: MediaUpload | null }
   | { type: "SET_VIDEO"; media: MediaUpload | null }
+  | { type: "SET_DECK_AUDIO"; media: MediaUpload | null }
+  | { type: "SET_MEDIA_KIND"; kind: MediaKind }
   | { type: "SET_SAVING"; isSaving: boolean }
   | { type: "SET_PUBLISHING"; isPublishing: boolean }
   | { type: "SET_ACTIVE_CARD_FOR_RECORDING"; index: number | null }
@@ -143,6 +154,10 @@ function editReducer(state: EditState, action: EditAction): EditState {
       return { ...state, coverVertical: action.media, error: null };
     case "SET_VIDEO":
       return { ...state, video: action.media, error: null };
+    case "SET_DECK_AUDIO":
+      return { ...state, deckAudio: action.media, error: null };
+    case "SET_MEDIA_KIND":
+      return { ...state, mediaKind: action.kind, error: null };
     case "SET_SAVING":
       return { ...state, isSaving: action.isSaving };
     case "SET_PUBLISHING":
@@ -167,6 +182,8 @@ function createInitialState(): EditState {
     coverHorizontal: null,
     coverVertical: null,
     video: null,
+    deckAudio: null,
+    mediaKind: "video",
     isSaving: false,
     isPublishing: false,
     activeCardForRecording: null,
@@ -176,7 +193,7 @@ function createInitialState(): EditState {
 }
 
 function determineInitialStep(draft: PlatformDeckDraftResponse): WizardStep {
-  if (!draft.videoSourcePath) return 2;
+  if (!draft.videoSourcePath && !draft.audioSourcePath) return 2;
   if (!draft.horizontalImageSourcePath || !draft.verticalImageSourcePath)
     return 3;
   const cardsComplete =
@@ -290,6 +307,20 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           isUploading: false,
           error: null,
         };
+      }
+      if (draft.audioSourcePath) {
+        const uri = await getFileDownloadURL(draft.audioSourcePath).catch(
+          () => ""
+        );
+        patch.deckAudio = {
+          uri,
+          gcsPath: draft.audioSourcePath,
+          fileName: draft.audioSourcePath.split("/").pop(),
+          progress: 1,
+          isUploading: false,
+          error: null,
+        };
+        patch.mediaKind = "audio";
       }
       if (draft.horizontalImageSourcePath) {
         const uri = await getFileDownloadURL(
@@ -869,7 +900,9 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           error: null,
         },
       });
-      await patchDraft({ videoSourcePath: gcsPath });
+      // A deck carries either a video or audio — never both.
+      await patchDraft({ videoSourcePath: gcsPath, audioSourcePath: null });
+      dispatch({ type: "SET_DECK_AUDIO", media: null });
     } catch {
       dispatch({
         type: "SET_VIDEO",
@@ -882,6 +915,146 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           error: "Upload failed",
         },
       });
+    }
+  };
+
+  const uploadDeckAudio = async (
+    uri: string,
+    fileName: string,
+    fileSize: number | null,
+    mimeType: string | null
+  ) => {
+    if (!draft) return;
+
+    const error = validateFile({
+      category: "deckAudio",
+      fileSize,
+      mimeType,
+      fileName,
+    });
+    if (error) {
+      dispatch({
+        type: "SET_DECK_AUDIO",
+        media: {
+          uri: "",
+          gcsPath: null,
+          fileName,
+          progress: 0,
+          isUploading: false,
+          error,
+        },
+      });
+      return;
+    }
+
+    // getAudioDurationMs resolves 0 when the probe fails; don't reject on that.
+    const durationMs = await getAudioDurationMs(uri);
+    if (durationMs > 0 && durationMs < MIN_DECK_AUDIO_DURATION_MS) {
+      dispatch({
+        type: "SET_DECK_AUDIO",
+        media: {
+          uri: "",
+          gcsPath: null,
+          fileName,
+          progress: 0,
+          isUploading: false,
+          error: `Audio too short (${(durationMs / 1000).toFixed(1)}s). Minimum is ${MIN_DECK_AUDIO_DURATION_MS / 1000} seconds.`,
+        },
+      });
+      return;
+    }
+    if (durationMs > MAX_DECK_AUDIO_DURATION_MS) {
+      dispatch({
+        type: "SET_DECK_AUDIO",
+        media: {
+          uri: "",
+          gcsPath: null,
+          fileName,
+          progress: 0,
+          isUploading: false,
+          error: `Audio too long (${(durationMs / 1000).toFixed(0)}s). Maximum is ${MAX_DECK_AUDIO_DURATION_MS / 1000 / 60} minutes.`,
+        },
+      });
+      return;
+    }
+
+    const gcsPath = adminDeckAudioPath(draft.uploadBasePath, fileName);
+    const rawMime = mimeType || getMimeType(fileName);
+    const audioContentType = rawMime === "video/mp4" ? "audio/mp4" : rawMime;
+
+    dispatch({
+      type: "SET_DECK_AUDIO",
+      media: {
+        uri,
+        gcsPath: null,
+        fileName,
+        progress: 0,
+        isUploading: true,
+        error: null,
+      },
+    });
+
+    try {
+      await uploadFileToStorage({
+        localUri: uri,
+        gcsPath,
+        contentType: audioContentType,
+        onProgress: (progress) => {
+          dispatch({
+            type: "SET_DECK_AUDIO",
+            media: {
+              uri,
+              gcsPath: null,
+              fileName,
+              progress,
+              isUploading: true,
+              error: null,
+            },
+          });
+        },
+      });
+      dispatch({
+        type: "SET_DECK_AUDIO",
+        media: {
+          uri,
+          gcsPath,
+          fileName,
+          progress: 1,
+          isUploading: false,
+          error: null,
+        },
+      });
+      // A deck carries either a video or audio — never both.
+      await patchDraft({ audioSourcePath: gcsPath, videoSourcePath: null });
+      dispatch({ type: "SET_VIDEO", media: null });
+    } catch {
+      dispatch({
+        type: "SET_DECK_AUDIO",
+        media: {
+          uri,
+          gcsPath: null,
+          fileName,
+          progress: 0,
+          isUploading: false,
+          error: "Upload failed",
+        },
+      });
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    const hadUpload = !!state.video?.gcsPath;
+    dispatch({ type: "SET_VIDEO", media: null });
+    if (hadUpload) {
+      await patchDraft({ videoSourcePath: null }).catch(() => {});
+    }
+  };
+
+  const handleRemoveDeckAudio = async () => {
+    const hadUpload = !!state.deckAudio?.gcsPath;
+    dispatch({ type: "SET_DECK_AUDIO", media: null });
+    if (hadUpload) {
+      await patchDraft({ audioSourcePath: null }).catch(() => {});
     }
   };
 
@@ -938,12 +1111,15 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     state.coverHorizontal?.isUploading ||
     state.coverVertical?.isUploading ||
     state.video?.isUploading ||
+    state.deckAudio?.isUploading ||
     false;
 
   const canAdvanceStep = (): boolean => {
     switch (state.currentStep) {
       case 2:
-        return state.video?.gcsPath != null;
+        return (
+          state.video?.gcsPath != null || state.deckAudio?.gcsPath != null
+        );
       case 3:
         return (
           state.coverHorizontal?.gcsPath != null &&
@@ -969,7 +1145,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
   const getValidationError = (): string => {
     switch (state.currentStep) {
       case 2:
-        return "Video is required";
+        return "Add a video or an audio clip";
       case 3:
         return "Both cover images are required";
       case 4:
@@ -1023,7 +1199,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
 
   const completedSteps = (() => {
     let count = 1; // Collection is always done
-    if (state.video?.gcsPath) count = 2;
+    if (state.video?.gcsPath || state.deckAudio?.gcsPath) count = 2;
     if (
       count === 2 &&
       state.coverHorizontal?.gcsPath &&
@@ -1069,23 +1245,61 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Step 2 — Video */}
+        {/* Step 2 — Media (video or long audio) */}
         {state.currentStep === 2 && (
           <Card>
             <Text variant="titleMedium" style={styles.stepTitle}>
-              Video
+              Media
             </Text>
             <Text
               variant="bodySmall"
-              style={{ color: theme.colors.onSurfaceVariant }}
+              style={{
+                color: theme.colors.onSurfaceVariant,
+                marginBottom: 12,
+              }}
             >
-              9:16 vertical, 10 seconds to 5 minutes long
+              Add either a video or an audio clip — not both.
             </Text>
-            <VideoPickerField
-              media={state.video}
-              onVideoPicked={uploadVideo}
-              onRemove={() => dispatch({ type: "SET_VIDEO", media: null })}
+            <SegmentedButtons
+              value={state.mediaKind}
+              onValueChange={(value) =>
+                dispatch({ type: "SET_MEDIA_KIND", kind: value as MediaKind })
+              }
+              buttons={[
+                { value: "video", label: "Video", icon: "video" },
+                { value: "audio", label: "Audio", icon: "music-note" },
+              ]}
+              style={styles.mediaToggle}
             />
+            {state.mediaKind === "video" ? (
+              <>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  9:16 vertical, 10 seconds to 5 minutes long
+                </Text>
+                <VideoPickerField
+                  media={state.video}
+                  onVideoPicked={uploadVideo}
+                  onRemove={handleRemoveVideo}
+                />
+              </>
+            ) : (
+              <>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  10 seconds to 5 minutes long, max 60 MB
+                </Text>
+                <AudioPickerField
+                  media={state.deckAudio}
+                  onAudioPicked={uploadDeckAudio}
+                  onRemove={handleRemoveDeckAudio}
+                />
+              </>
+            )}
           </Card>
         )}
 
@@ -1197,15 +1411,17 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                 variant="bodyMedium"
                 style={{ color: theme.colors.onSurfaceVariant }}
               >
-                Video
+                {state.deckAudio?.gcsPath ? "Audio" : "Video"}
               </Text>
               <MaterialCommunityIcons
                 name={
-                  state.video?.gcsPath ? "check-circle" : "alert-circle-outline"
+                  state.video?.gcsPath || state.deckAudio?.gcsPath
+                    ? "check-circle"
+                    : "alert-circle-outline"
                 }
                 size={20}
                 color={
-                  state.video?.gcsPath
+                  state.video?.gcsPath || state.deckAudio?.gcsPath
                     ? theme.colors.primary
                     : theme.colors.error
                 }
@@ -1250,7 +1466,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               }}
             >
               Publishing translates cards to every supported language variant
-              and kicks off video transcoding. It may take a few minutes.
+              and kicks off media processing. It may take a few minutes.
             </Text>
           </Card>
         )}
@@ -1318,6 +1534,9 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     marginBottom: 12,
+  },
+  mediaToggle: {
+    marginBottom: 16,
   },
   spacer: {
     height: 8,
