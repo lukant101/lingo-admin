@@ -108,7 +108,8 @@ export type UpdatePlatformDeckDraftInput = {
   title?: string;
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;
-  videoSourcePath?: string;
+  videoSourcePath?: string | null;
+  audioSourcePath?: string | null;
   cards?: PlatformDeckDraftCard[];
 };
 

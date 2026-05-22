@@ -1,5 +1,8 @@
 # TODO
 
+- don't allow audio upload before text addition (should do the same for the creators submission wizard)
+- don't send PATCH request for a card in submission wizard without text (API rejects it; think through the desired behaviour and implementation; maybe change the api?)
+- the build number doesn't change on settings page when we change the package number -- probably need to update in app.json
 - change Publish button to Submit
 - once we submit, we right away see the submitted deck in the list of decks (before all processing ends)
 - if we go out of the /publish page, we cannot set the deck as published (maybe the backend should right away publish, instead of the client?)

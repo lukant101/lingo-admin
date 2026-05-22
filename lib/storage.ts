@@ -161,3 +161,11 @@ export function adminCardAudioPath(
   const ext = filename.split(".").pop() ?? "m4a";
   return `${uploadBasePath}/audio/cards/${cardIndex}_${randomId()}.${ext}`;
 }
+
+export function adminDeckAudioPath(
+  uploadBasePath: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "m4a";
+  return `${uploadBasePath}/audio/deck_${randomId()}.${ext}`;
+}

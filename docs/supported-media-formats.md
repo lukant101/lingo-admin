@@ -23,12 +23,15 @@
 - audio support: (no transcoding) m4a and mp4 (AAC), mp3, wav
 - image support: webp (preferred), jpeg/jpg, png
 
+A platform deck carries either a video or a long audio clip (up to 5 minutes) — exactly one, never both. Card audio is a separate, short clip.
+
 Note: mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
 
 ### Maximum file size
 
 - images: 3 MB (up to HD resolution)
-- audio: 3 MB (up to 10 seconds)
+- card audio: 3 MB (up to 10 seconds)
+- platform deck audio: 60 MB (up to 5 minutes)
 - video: 500 MB (up to 5 minutes)
 
 ### Implementation Notes

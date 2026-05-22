@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 
-type FileCategory = "video" | "image" | "audio";
+type FileCategory = "video" | "image" | "audio" | "deckAudio";
 
 type FileLimit = {
   maxBytes: number;
@@ -47,6 +47,24 @@ export const FILE_LIMITS: Record<FileCategory, FileLimit> = {
     allowedExtensions: ["m4a", "mp3", "mp4", "wav"],
     label: "Audio",
   },
+  // Deck-level long audio (an alternative to the platform deck video). Same
+  // formats as card audio, but a much larger size budget so a 5-minute clip —
+  // including uncompressed WAV — fits.
+  deckAudio: {
+    maxBytes: 60 * 1024 * 1024,
+    allowedMimeTypes: [
+      "audio/mp4",
+      "audio/x-m4a",
+      "audio/mpeg",
+      "audio/wav",
+      "audio/wave",
+      "audio/x-wav",
+      "audio/vnd.wave",
+      "video/mp4",
+    ],
+    allowedExtensions: ["m4a", "mp3", "mp4", "wav"],
+    label: "Audio",
+  },
 };
 
 type ValidateFileParams = {
@@ -67,6 +85,8 @@ export const MIN_AUDIO_DURATION_MS = 500;
 export const MAX_AUDIO_DURATION_MS = 10_000;
 export const MIN_VIDEO_DURATION_MS = 10_000;
 export const MAX_VIDEO_DURATION_MS = 300_000;
+export const MIN_DECK_AUDIO_DURATION_MS = 10_000;
+export const MAX_DECK_AUDIO_DURATION_MS = 300_000;
 
 export const MIN_VIDEO_DIMENSIONS = { width: 720, height: 1280 };
 export const MAX_VIDEO_DIMENSIONS = { width: 1080, height: 1920 };
