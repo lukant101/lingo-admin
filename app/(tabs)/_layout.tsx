@@ -70,6 +70,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="video-projects"
+          options={{
+            title: "Videos",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="movie-open"
+                size={TAB_ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             title: "Settings",

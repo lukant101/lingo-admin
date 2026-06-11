@@ -103,6 +103,19 @@ The admin writes the dialogue or song lyrics with LLM help. A chat screen sends 
 - Auto-publishing to social platforms (descriptions are copy/paste for now)
 - Changes to the existing platform deck upload flow
 
+## Implementation notes (v1)
+
+The first implementation is in place across both repos (`app/admin/video-projects/` + `components/videoProject/` here; `src/video-projects/` in the API repo). Notable details:
+
+- **Endpoints** (all under `/admin/video-projects`, AdminGuard): CRUD, `:id/chat` + `:id/chat/reset`, `:id/images` (+ `PATCH/:imageId`, `:imageId/redo`, `DELETE`), `:id/card-audio` + `:id/card-audio/split`, `:id/deck-audio`, `:id/song-style-prompt`, `:id/song` + `:id/song/status`, `:id/export`.
+- **Audio is pure-Node** — Gemini TTS returns 16-bit PCM, so stereo conversion, silence detection (suggested cut points), and splitting are done without ffmpeg; outputs are stereo WAV (editor-friendly). See `src/video-projects/audio/pcm-audio.ts` (+ unit tests).
+- **Images are 1024x1536** (gpt-image's portrait size, ~2:3) — the closest available to 9:16; final framing happens in the video editor. The illustration (non-photorealistic) style is enforced in the backend prompt.
+- **Deck audio supports at most 2 speakers** (Gemini multi-speaker TTS limit). Speaker names are parsed from `Name:` line prefixes in the script.
+- **Suno** is called through a sunoapi.org-compatible provider (`SUNO_API_BASE_URL`, `SUNO_API_KEY`); generation is async — the app polls `:id/song/status`, which downloads and stores the MP3 on completion.
+- **Description templates are hardcoded client-side** (`constants/videoDescriptionTemplates.ts`) with a `{title}` placeholder and per-platform hashtags.
+- **Export** builds a ZIP server-side (approved images, card clips, deck audio or song, script/cards/descriptions as text) and returns a 30-minute signed URL.
+- **Env vars** (API repo): `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `SUNO_API_KEY` (+ optional model overrides — see `.env.example`). Missing keys degrade gracefully per-provider.
+
 ## Open questions
 
 - Suno API plan, rate limits, and generation cost per song
