@@ -68,7 +68,8 @@ export type UpdatePlatformDeckInput = {
   appleMusic?: string;
   spotify?: string;
   youtubeMusic?: string;
-  /** Mates-bucket path of a newly uploaded cover; the API copies it to the CDN. */
+  /** Mates-bucket path of a newly uploaded image; the API copies it to the CDN. */
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;
+  firstVideoFrameSourcePath?: string;
 };
