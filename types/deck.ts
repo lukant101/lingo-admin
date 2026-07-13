@@ -44,6 +44,8 @@ export type PlatformDeck = {
   langVariantCode: string;
   horizontalImageUrl: string;
   verticalImageUrl: string;
+  /** Reliable "has a video" signal — previewVideoUrl is never set for platform decks. */
+  hasVideo: boolean;
   previewVideoUrl: string | null;
   firstVideoFrameUrl: string | null;
   audioUrl: string | null;

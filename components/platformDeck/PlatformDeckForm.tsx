@@ -296,8 +296,10 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                 onRemove={() => setPendingVerticalPath(null)}
               />
               {/* The poster frame is only meaningful for a deck with a video —
-                  it's normally extracted from the video on publish. */}
-              {deck.previewVideoUrl && (
+                  it's normally extracted from the video on publish. Gate on
+                  hasVideo, not previewVideoUrl: the platform-deck pipeline
+                  serves video via a signed manifest and leaves that URL null. */}
+              {deck.hasVideo && (
                 <>
                   <View style={styles.imageSpacer} />
                   <GameImageUploadField
@@ -314,7 +316,10 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                   />
                   <Text
                     variant="bodySmall"
-                    style={{ color: theme.colors.onSurfaceVariant }}
+                    style={{
+                      color: theme.colors.onSurfaceVariant,
+                      marginTop: 8,
+                    }}
                   >
                     Extracted from the video on publish. Upload one here to
                     override it.
@@ -328,7 +333,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         {/* A deck carries either a video or an audio clip, never both, so the
             audio field is hidden for decks that have a video. Video itself
             can't be changed here — it has to go back through the transcoder. */}
-        {uploadBasePath && !deck.previewVideoUrl && (
+        {uploadBasePath && !deck.hasVideo && (
           <Card style={styles.card}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Audio

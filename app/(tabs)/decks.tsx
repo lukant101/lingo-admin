@@ -196,7 +196,7 @@ function DeckRow({
   const theme = useTheme();
   const meta = [deck.level, `${deck.cardCount} cards`];
   if (deck.forKids) meta.push("kids");
-  if (deck.previewVideoUrl) meta.push("video");
+  if (deck.hasVideo) meta.push("video");
   else if (deck.audioUrl) meta.push("audio");
 
   return (
