@@ -5,7 +5,7 @@ import { Chip, IconButton, Text, useTheme } from "react-native-paper";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { GEMINI_VOICES } from "@/types/game";
+import { GEMINI_VOICES, type VoiceGender } from "@/types/game";
 
 export type CharacterFields = {
   slug: string;
@@ -30,10 +30,21 @@ type CharacterCardProps = {
   disabled?: boolean;
 };
 
-const VOICE_OPTIONS = GEMINI_VOICES.map((voice) => ({
-  label: voice,
-  value: voice,
-}));
+const GENDER_OPTIONS = [
+  { label: "Female", value: "female" },
+  { label: "Male", value: "male" },
+];
+
+const voiceOptionsFor = (gender: VoiceGender) =>
+  GEMINI_VOICES.filter((voice) => voice.gender === gender).map((voice) => ({
+    label: `${voice.name} — ${voice.style}`,
+    value: voice.name,
+  }));
+
+// Gender is derived from the selected voice rather than stored — every voice
+// has a known gender, so nothing needs persisting.
+const genderOfVoice = (voiceName: string): VoiceGender =>
+  GEMINI_VOICES.find((voice) => voice.name === voiceName)?.gender ?? "female";
 
 export function CharacterCard({
   index,
@@ -134,8 +145,24 @@ export function CharacterCard({
             editable={!disabled}
           />
           <Select
+            label="Voice gender"
+            options={GENDER_OPTIONS}
+            value={genderOfVoice(character.voiceName)}
+            onValueChange={(value) => {
+              const gender = value as VoiceGender;
+              if (gender === genderOfVoice(character.voiceName)) return;
+              // Switching gender picks the first voice of that gender so the
+              // selection is never inconsistent with the dropdown below.
+              const first = GEMINI_VOICES.find((v) => v.gender === gender);
+              if (first) {
+                onField("voiceName", first.name);
+                onCommit();
+              }
+            }}
+          />
+          <Select
             label="Voice"
-            options={VOICE_OPTIONS}
+            options={voiceOptionsFor(genderOfVoice(character.voiceName))}
             value={character.voiceName}
             onValueChange={(value) => {
               onField("voiceName", value);
