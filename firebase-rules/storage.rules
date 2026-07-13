@@ -46,6 +46,42 @@ service firebase.storage {
       allow write: if isOwner(uid) && isAdmin() && isValidImage();
     }
 
+    // =========================================================================
+    // Dev environment
+    // Dev and production share this bucket, so dev objects are namespaced
+    // under /devenv (derived from NODE_ENV in the API and
+    // EXPO_PUBLIC_APP_ENV in the apps). Production paths stay at
+    // the root, so these blocks must mirror the ones above exactly — a rule
+    // added above without its counterpart here breaks dev uploads, which then
+    // fall through to the deny-all below.
+    // =========================================================================
+
+    // Platform deck draft — card audio clips
+    match /devenv/platformDeckDrafts/{uid}/{draftId}/audio/cards/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidAudio();
+    }
+
+    // Platform deck draft — video
+    match /devenv/platformDeckDrafts/{uid}/{draftId}/video/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidVideo();
+    }
+
+    // Platform deck draft — cover/card images. Also used to stage replacement
+    // images for published decks (the deck id sits in the draftId slot).
+    match /devenv/platformDeckDrafts/{uid}/{draftId}/images/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidImage();
+    }
+
+    // Game draft — cover/character images. Also used to stage replacement
+    // images for published games (the game id sits in the draftId slot).
+    match /devenv/gameDrafts/{uid}/{draftId}/images/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidImage();
+    }
+
     // Deny everything else
     match /{allPaths=**} {
       allow read, write: if false;

@@ -12,6 +12,29 @@ import { randomId } from "@/lib/uuid";
 
 const storage = getStorage(app);
 
+/**
+ * Dev and production currently share storage buckets, so every non-production
+ * object is namespaced under a root path segment. Mirrors how the API derives
+ * the same prefix from NODE_ENV.
+ *
+ * Anything other than "production" gets the prefix — so a production build
+ * MUST set EXPO_PUBLIC_APP_ENV=production, or its uploads land under devenv/
+ * and the API rejects the save with a *_NOT_FOUND error. Defaulting this way
+ * keeps a misconfigured build out of production paths rather than polluting
+ * them.
+ *
+ * Note that paths derived from a draft's server-provided `uploadBasePath`
+ * already carry the API's prefix and must not be prefixed again.
+ */
+const ENV_PATH_PREFIX =
+  process.env.EXPO_PUBLIC_APP_ENV === "production" ? "" : "devenv";
+
+/** Join path segments, rooting them at the environment prefix. */
+export function storagePath(...segments: string[]): string {
+  const path = segments.join("/");
+  return ENV_PATH_PREFIX ? `${ENV_PATH_PREFIX}/${path}` : path;
+}
+
 type UploadOptions = {
   localUri: string;
   gcsPath: string;
@@ -136,7 +159,12 @@ export function buildLogoPath(
 ): string {
   const ext = filename.split(".").pop() ?? "webp";
   const timestamp = Date.now();
-  return `studios/${firebaseUid}/${studioId}/studio_logo_${timestamp}.${ext}`;
+  return storagePath(
+    "studios",
+    firebaseUid,
+    studioId,
+    `studio_logo_${timestamp}.${ext}`
+  );
 }
 
 export function adminVideoPath(
