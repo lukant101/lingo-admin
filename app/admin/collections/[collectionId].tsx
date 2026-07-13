@@ -15,7 +15,12 @@ import type {
 } from "@/types/platformDeck";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
@@ -317,39 +322,44 @@ function DraftRow({ draft }: { draft: PlatformDeckDraftResponse }) {
 
 function DeckRow({ deck }: { deck: CollectionDeckItem }) {
   const theme = useTheme();
+  const router = useRouter();
   return (
-    <Card>
-      <View style={styles.deckRow}>
-        <View style={{ flex: 1 }}>
-          <Text variant="titleMedium" numberOfLines={1}>
-            {deck.title || "Untitled"}
-          </Text>
-          <Text
-            variant="bodySmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            sort order: {deck.sortOrder}
-          </Text>
+    <Pressable
+      onPress={() => router.push(`/admin/decks/${deck.deckId}` as never)}
+    >
+      <Card>
+        <View style={styles.deckRow}>
+          <View style={{ flex: 1 }}>
+            <Text variant="titleMedium" numberOfLines={1}>
+              {deck.title || "Untitled"}
+            </Text>
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              sort order: {deck.sortOrder}
+            </Text>
+          </View>
+          <View style={styles.statusCell}>
+            <MaterialCommunityIcons
+              name={deck.published ? "eye" : "eye-off"}
+              size={18}
+              color={
+                deck.published
+                  ? theme.colors.primary
+                  : theme.colors.onSurfaceVariant
+              }
+            />
+            <Text
+              variant="labelSmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              {deck.published ? "Published" : "Hidden"}
+            </Text>
+          </View>
         </View>
-        <View style={styles.statusCell}>
-          <MaterialCommunityIcons
-            name={deck.published ? "eye" : "eye-off"}
-            size={18}
-            color={
-              deck.published
-                ? theme.colors.primary
-                : theme.colors.onSurfaceVariant
-            }
-          />
-          <Text
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            {deck.published ? "Published" : "Hidden"}
-          </Text>
-        </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }
 

@@ -156,6 +156,21 @@ export function adminCoverImagePath(
   return `${uploadBasePath}/images/cover_${variant}_${randomId()}.${ext}`;
 }
 
+/**
+ * Build a staging path for a replacement cover on an already-published deck.
+ * Reuses the platformDeckDrafts prefix with the deck id in the draft-id slot —
+ * the storage rule matches any value there — and the API copies the file to
+ * the CDN on save.
+ */
+export function platformDeckCoverImagePath(
+  uploadBasePath: string,
+  variant: "horizontal" | "vertical",
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "jpg";
+  return `${uploadBasePath}/images/cover_${variant}_${randomId()}.${ext}`;
+}
+
 export function gameCoverImagePath(
   uploadBasePath: string,
   filename: string

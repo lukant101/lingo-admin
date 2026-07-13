@@ -1,17 +1,16 @@
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
+import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import {
-  getCollection,
-  getPlatformDeckDraft,
-} from "@/lib/api/platformDecks";
+import { getCollection, getPlatformDeckDraft } from "@/lib/api/platformDecks";
 import type { CollectionResponse } from "@/types/collection";
 import { useQuery } from "@tanstack/react-query";
-import { Redirect, useLocalSearchParams } from "expo-router";
+import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
 export default function DeckCollectionsScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { draftId } = useLocalSearchParams<{ draftId: string }>();
 
   const { data: draft, isLoading } = useQuery({
@@ -22,7 +21,8 @@ export default function DeckCollectionsScreen() {
 
   const { data: primaryCollection } = useQuery({
     queryKey: ["collection", draft?.collectionId],
-    queryFn: (): Promise<CollectionResponse> => getCollection(draft!.collectionId),
+    queryFn: (): Promise<CollectionResponse> =>
+      getCollection(draft!.collectionId),
     enabled: !!draft,
   });
 
@@ -40,6 +40,12 @@ export default function DeckCollectionsScreen() {
       contentContainerStyle={styles.content}
     >
       <Text variant="titleMedium">{draft.title}</Text>
+      <Button
+        title="Edit deck"
+        icon="pencil"
+        variant="outline"
+        onPress={() => router.push(`/admin/decks/${draft.deckId}` as never)}
+      />
       <CollectionMembershipList
         deckId={draft.deckId}
         initialMemberships={
