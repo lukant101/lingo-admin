@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { IconButton, Switch, Text, useTheme } from "react-native-paper";
 
 import { GameImageUploadField } from "@/components/game/GameImageUploadField";
+import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -19,10 +20,15 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
 import { DECK_LEVELS } from "@/lib/constants";
 import {
+  platformDeckAudioPath,
   platformDeckCoverImagePath,
   platformDeckFirstFramePath,
   storagePath,
 } from "@/lib/storage";
+import {
+  MAX_DECK_AUDIO_DURATION_MS,
+  MIN_DECK_AUDIO_DURATION_MS,
+} from "@/lib/uploadValidation";
 import type { DeckLevel } from "@/types/langs";
 
 type PlatformDeckFormProps = {
@@ -61,6 +67,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   const [pendingFirstFramePath, setPendingFirstFramePath] = useState<
     string | null
   >(null);
+  const [pendingAudioPath, setPendingAudioPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [playingCardId, setPlayingCardId] = useState<string | null>(null);
 
@@ -149,12 +156,14 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         ...(pendingFirstFramePath
           ? { firstVideoFrameSourcePath: pendingFirstFramePath }
           : {}),
+        ...(pendingAudioPath ? { audioSourcePath: pendingAudioPath } : {}),
       });
       // Replaced images now live at new CDN URLs; drop the staged paths so a
       // later save doesn't re-copy them.
       setPendingHorizontalPath(null);
       setPendingVerticalPath(null);
       setPendingFirstFramePath(null);
+      setPendingAudioPath(null);
       queryClient.invalidateQueries({
         queryKey: ["adminPlatformDeck", deckId],
       });
@@ -301,6 +310,36 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
             </>
           )}
         </Card>
+
+        {/* A deck carries either a video or an audio clip, never both, so the
+            audio field is hidden for decks that have a video. Video itself
+            can't be changed here — it has to go back through the transcoder. */}
+        {uploadBasePath && !deck.previewVideoUrl && (
+          <Card style={styles.card}>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              Audio
+            </Text>
+            <DeckAudioUploadField
+              label={deck.audioUrl ? "Deck audio" : "Deck audio (none set)"}
+              existingUrl={deck.audioUrl}
+              buildGcsPath={(filename) =>
+                platformDeckAudioPath(uploadBasePath, filename)
+              }
+              onUploaded={(gcsPath) => setPendingAudioPath(gcsPath)}
+              onRemove={() => setPendingAudioPath(null)}
+            />
+            <Text
+              variant="bodySmall"
+              style={{
+                color: theme.colors.onSurfaceVariant,
+                marginTop: 8,
+              }}
+            >
+              {MIN_DECK_AUDIO_DURATION_MS / 1000} seconds to{" "}
+              {MAX_DECK_AUDIO_DURATION_MS / 1000 / 60} minutes, max 60 MB.
+            </Text>
+          </Card>
+        )}
 
         <Card style={styles.card}>
           <Text variant="titleMedium" style={styles.sectionTitle}>

@@ -20,11 +20,27 @@ service firebase.storage {
       return request.resource.size < 3 * 1024 * 1024
         && request.resource.contentType.matches('audio/(mp4|mpeg|wav)');
     }
+    // Deck-level audio is a whole track rather than a per-card clip, so it gets
+    // a much larger cap (see FILE_LIMITS.deckAudio in the admin app). The
+    // content types mirror that same allow-list.
+    function isValidDeckAudio() {
+      return request.resource.size < 60 * 1024 * 1024
+        && request.resource.contentType.matches('audio/(mp4|x-m4a|mpeg|wav|wave|x-wav)');
+    }
 
     // Platform deck draft — card audio clips
     match /platformDeckDrafts/{uid}/{draftId}/audio/cards/{filename} {
       allow read:  if isOwner(uid) && isAdmin();
       allow write: if isOwner(uid) && isAdmin() && isValidAudio();
+    }
+
+    // Platform deck draft — deck-level audio track. Distinct from the rule
+    // above: {filename} matches a single segment, so the two never overlap.
+    // Also used to stage audio added to an already-published deck (the deck id
+    // sits in the draftId slot).
+    match /platformDeckDrafts/{uid}/{draftId}/audio/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidDeckAudio();
     }
 
     // Platform deck draft — video
@@ -60,6 +76,12 @@ service firebase.storage {
     match /devenv/platformDeckDrafts/{uid}/{draftId}/audio/cards/{filename} {
       allow read:  if isOwner(uid) && isAdmin();
       allow write: if isOwner(uid) && isAdmin() && isValidAudio();
+    }
+
+    // Platform deck draft — deck-level audio track
+    match /devenv/platformDeckDrafts/{uid}/{draftId}/audio/{filename} {
+      allow read:  if isOwner(uid) && isAdmin();
+      allow write: if isOwner(uid) && isAdmin() && isValidDeckAudio();
     }
 
     // Platform deck draft — video

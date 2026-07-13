@@ -72,4 +72,5 @@ export type UpdatePlatformDeckInput = {
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;
   firstVideoFrameSourcePath?: string;
+  audioSourcePath?: string;
 };

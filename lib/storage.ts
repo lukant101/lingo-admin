@@ -200,6 +200,19 @@ export function platformDeckCoverImagePath(
 }
 
 /**
+ * Build a staging path for deck audio added to or replaced on a published
+ * deck. Mirrors adminDeckAudioPath so it lands under the draft prefix's
+ * `audio/` folder; the API copies it to the CDN on save.
+ */
+export function platformDeckAudioPath(
+  uploadBasePath: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "m4a";
+  return `${uploadBasePath}/audio/deck_${randomId()}.${ext}`;
+}
+
+/**
  * Build a staging path for a replacement video poster frame on a published
  * deck. Staged alongside the covers; the API copies it to the CDN on save.
  */
