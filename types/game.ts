@@ -2,17 +2,41 @@ import type { DeckLevel } from "@/types/langs";
 
 export type VoiceGender = "female" | "male";
 
-// Gemini prebuilt TTS voices offered for game characters (the set supported
-// by the Live API), with gender and style per Google's voice list.
+// All 30 Gemini prebuilt TTS voices. The games backend runs a native-audio
+// Live model, which supports every TTS voice. Genders per
+// https://docs.cloud.google.com/text-to-speech/docs/gemini-tts, styles per
+// https://ai.google.dev/gemini-api/docs/speech-generation.
 export const GEMINI_VOICES = [
+  { name: "Achernar", gender: "female", style: "Soft" },
   { name: "Aoede", gender: "female", style: "Breezy" },
+  { name: "Autonoe", gender: "female", style: "Bright" },
+  { name: "Callirrhoe", gender: "female", style: "Easy-going" },
+  { name: "Despina", gender: "female", style: "Smooth" },
+  { name: "Erinome", gender: "female", style: "Clear" },
+  { name: "Gacrux", gender: "female", style: "Mature" },
   { name: "Kore", gender: "female", style: "Firm" },
+  { name: "Laomedeia", gender: "female", style: "Upbeat" },
   { name: "Leda", gender: "female", style: "Youthful" },
+  { name: "Pulcherrima", gender: "female", style: "Forward" },
+  { name: "Sulafat", gender: "female", style: "Warm" },
+  { name: "Vindemiatrix", gender: "female", style: "Gentle" },
   { name: "Zephyr", gender: "female", style: "Bright" },
+  { name: "Achird", gender: "male", style: "Friendly" },
+  { name: "Algenib", gender: "male", style: "Gravelly" },
+  { name: "Algieba", gender: "male", style: "Smooth" },
+  { name: "Alnilam", gender: "male", style: "Firm" },
   { name: "Charon", gender: "male", style: "Informative" },
+  { name: "Enceladus", gender: "male", style: "Breathy" },
   { name: "Fenrir", gender: "male", style: "Excitable" },
+  { name: "Iapetus", gender: "male", style: "Clear" },
   { name: "Orus", gender: "male", style: "Firm" },
   { name: "Puck", gender: "male", style: "Upbeat" },
+  { name: "Rasalgethi", gender: "male", style: "Informative" },
+  { name: "Sadachbia", gender: "male", style: "Lively" },
+  { name: "Sadaltager", gender: "male", style: "Knowledgeable" },
+  { name: "Schedar", gender: "male", style: "Even" },
+  { name: "Umbriel", gender: "male", style: "Easy-going" },
+  { name: "Zubenelgenubi", gender: "male", style: "Casual" },
 ] as const;
 
 export type GeminiVoice = (typeof GEMINI_VOICES)[number]["name"];
