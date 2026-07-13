@@ -59,6 +59,17 @@ export type PlatformDeckWithCards = PlatformDeck & {
   cards: PlatformDeckCard[];
 };
 
+export type PlatformDeckSummary = PlatformDeck & {
+  cardCount: number;
+};
+
+export type PaginatedPlatformDecks = {
+  data: PlatformDeckSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export type UpdatePlatformDeckInput = {
   title?: string;
   level?: DeckLevel;

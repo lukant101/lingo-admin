@@ -44,6 +44,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="decks"
+          options={{
+            title: "Decks",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="cards-outline"
+                size={TAB_ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="games"
           options={{
             title: "Games",

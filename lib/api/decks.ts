@@ -1,8 +1,36 @@
 import { apiGet, apiPatch } from "./client";
+import type { DeckLevel } from "@/types/langs";
 import type {
+  PaginatedPlatformDecks,
   PlatformDeckWithCards,
   UpdatePlatformDeckInput,
 } from "@/types/deck";
+
+export type ListPlatformDecksQuery = {
+  langVariantCode?: string;
+  level?: DeckLevel;
+  forKids?: boolean;
+  /** Case-insensitive substring match on the deck title. */
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export async function listPlatformDecks(
+  query: ListPlatformDecksQuery = {}
+): Promise<PaginatedPlatformDecks> {
+  const params: Record<string, string> = {};
+  if (query.langVariantCode) params.langVariantCode = query.langVariantCode;
+  if (query.level) params.level = query.level;
+  if (query.forKids != null) params.forKids = String(query.forKids);
+  if (query.search?.trim()) params.search = query.search.trim();
+  if (query.page != null) params.page = String(query.page);
+  if (query.pageSize != null) params.pageSize = String(query.pageSize);
+  return apiGet<PaginatedPlatformDecks>(
+    "/admin/decks",
+    Object.keys(params).length > 0 ? params : undefined
+  );
+}
 
 export async function getPlatformDeck(
   deckId: string
