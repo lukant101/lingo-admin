@@ -17,6 +17,9 @@ type GameImageUploadFieldProps = {
   resizeVariant?: "horizontal" | "vertical";
   /** GCS path already stored on the draft (preview is resolved from it). */
   existingPath: string | null;
+  /** Direct preview URL (e.g. CDN URL of a published game image). Used as a
+   * fallback when there is no pending upload and no existingPath. */
+  existingUrl?: string | null;
   buildGcsPath: (filename: string) => string;
   onUploaded: (gcsPath: string) => void | Promise<unknown>;
   onRemove: () => void | Promise<unknown>;
@@ -28,6 +31,7 @@ export function GameImageUploadField({
   aspectRatio,
   resizeVariant,
   existingPath,
+  existingUrl,
   buildGcsPath,
   onUploaded,
   onRemove,
@@ -35,20 +39,20 @@ export function GameImageUploadField({
 }: GameImageUploadFieldProps) {
   const theme = useTheme();
   const [media, setMedia] = useState<MediaUpload | null>(null);
-  const [existingUrl, setExistingUrl] = useState<string | null>(null);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     if (!existingPath) {
-      setExistingUrl(null);
+      setResolvedUrl(null);
       return;
     }
     getFileDownloadURL(existingPath)
       .then((url) => {
-        if (!cancelled) setExistingUrl(url);
+        if (!cancelled) setResolvedUrl(url);
       })
       .catch(() => {
-        if (!cancelled) setExistingUrl(null);
+        if (!cancelled) setResolvedUrl(null);
       });
     return () => {
       cancelled = true;
@@ -157,11 +161,15 @@ export function GameImageUploadField({
 
   const handleRemove = async () => {
     setMedia(null);
-    setExistingUrl(null);
+    setResolvedUrl(null);
     await onRemove();
   };
 
-  const previewUri = media?.uri || existingUrl;
+  // Pending upload / draft image can be removed; the direct URL (published
+  // image) cannot — it only gets replaced, so removing a pending upload
+  // restores it as the preview.
+  const removableUri = media?.uri || resolvedUrl;
+  const previewUri = removableUri || existingUrl;
 
   return (
     <View style={styles.container}>
@@ -182,7 +190,7 @@ export function GameImageUploadField({
             ]}
             resizeMode="cover"
           />
-          {!disabled && (
+          {!disabled && removableUri && (
             <IconButton
               icon="close-circle"
               size={24}
@@ -198,6 +206,15 @@ export function GameImageUploadField({
           onPress={pickAndUpload}
           variant="outline"
           disabled={disabled || media?.isUploading}
+        />
+      )}
+
+      {!disabled && !removableUri && previewUri && (
+        <Button
+          title="Replace Image"
+          onPress={pickAndUpload}
+          variant="outline"
+          disabled={media?.isUploading}
         />
       )}
 
