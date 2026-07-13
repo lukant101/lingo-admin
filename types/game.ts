@@ -57,6 +57,9 @@ export type GameCharacterInput = {
   slug: string;
   name: string;
   imageUrl: string;
+  /** Mates-bucket path of a newly uploaded image; the API copies it to the
+   * CDN and overwrites imageUrl. */
+  imageSourcePath?: string;
   intro?: string;
   voiceName?: string;
   systemPrompt: string;
@@ -70,6 +73,9 @@ export type UpdateGameInput = {
   challenge?: string;
   accomplishment?: string;
   verticalImageUrl?: string;
+  /** Mates-bucket path of a newly uploaded cover image; the API copies it to
+   * the CDN and overwrites verticalImageUrl. */
+  verticalImageSourcePath?: string;
   forKids?: boolean;
   isPublished?: boolean;
   sortOrder?: number;

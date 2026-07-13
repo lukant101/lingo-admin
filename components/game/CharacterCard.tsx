@@ -19,8 +19,7 @@ type CharacterCardProps = {
   index: number;
   count: number;
   character: CharacterFields;
-  /** Image area — an upload field for drafts, a read-only preview for
-   * published games. */
+  /** Image area — an upload field for both drafts and published games. */
   imageSlot: ReactNode;
   onField: (field: keyof CharacterFields, value: string) => void;
   /** Called on text-field blur so the parent can persist changes. */

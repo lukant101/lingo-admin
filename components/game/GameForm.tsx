@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Dialog, Portal, Switch, Text, useTheme } from "react-native-paper";
 
 import { CharacterCard } from "@/components/game/CharacterCard";
+import { GameImageUploadField } from "@/components/game/GameImageUploadField";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -14,9 +15,11 @@ import {
   StyledSnackbar,
   type SnackbarState,
 } from "@/components/ui/StyledSnackbar";
+import { useAuth } from "@/contexts/AuthContext";
 import { deleteGame, getGame, updateGame } from "@/lib/api/games";
 import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import { getVariantName } from "@/lib/languages";
+import { gameCharacterImagePath, gameCoverImagePath } from "@/lib/storage";
 import type { DeckLevel } from "@/types/langs";
 import type { GameCharacterInput } from "@/types/game";
 
@@ -30,6 +33,8 @@ type EditableCharacter = {
   slug: string;
   name: string;
   imageUrl: string;
+  /** Mates-bucket path of a newly uploaded replacement image, if any. */
+  imageSourcePath: string | null;
   intro: string;
   voiceName: string;
   systemPrompt: string;
@@ -55,10 +60,14 @@ export function GameForm({ gameId }: GameFormProps) {
   const theme = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
   const [fields, setFields] = useState<GameFields | null>(null);
   const [characters, setCharacters] = useState<EditableCharacter[]>([]);
+  const [pendingCoverSourcePath, setPendingCoverSourcePath] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -90,12 +99,18 @@ export function GameForm({ gameId }: GameFormProps) {
         slug: c.slug,
         name: c.name,
         imageUrl: c.imageUrl,
+        imageSourcePath: null,
         intro: c.intro,
         voiceName: c.voiceName,
         systemPrompt: c.systemPrompt,
       }))
     );
   }, [game, fields]);
+
+  // Replacement images are uploaded like draft images: to the mates bucket
+  // under the gameDrafts prefix (with the game id in the draft-id slot), then
+  // the API copies them to the CDN on save.
+  const uploadBasePath = user ? `gameDrafts/${user.uid}/${gameId}` : null;
 
   const setField = <K extends keyof GameFields>(
     key: K,
@@ -106,11 +121,17 @@ export function GameForm({ gameId }: GameFormProps) {
 
   const setCharacterField = (
     index: number,
-    field: keyof Omit<EditableCharacter, "imageUrl">,
+    field: keyof Omit<EditableCharacter, "imageUrl" | "imageSourcePath">,
     value: string
   ) => {
     setCharacters((prev) =>
       prev.map((c, i) => (i === index ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const setCharacterImageSourcePath = (index: number, path: string | null) => {
+    setCharacters((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, imageSourcePath: path } : c))
     );
   };
 
@@ -165,6 +186,7 @@ export function GameForm({ gameId }: GameFormProps) {
       slug: c.slug,
       name: c.name,
       imageUrl: c.imageUrl,
+      ...(c.imageSourcePath ? { imageSourcePath: c.imageSourcePath } : {}),
       intro: c.intro,
       voiceName: c.voiceName,
       systemPrompt: c.systemPrompt,
@@ -173,7 +195,7 @@ export function GameForm({ gameId }: GameFormProps) {
 
     setSaving(true);
     try {
-      await updateGame(gameId, {
+      const updated = await updateGame(gameId, {
         title: fields.title.trim(),
         level: fields.level,
         setting: fields.setting,
@@ -182,8 +204,23 @@ export function GameForm({ gameId }: GameFormProps) {
         forKids: fields.forKids,
         isPublished: fields.isPublished,
         ...(sortOrder !== undefined ? { sortOrder } : {}),
+        ...(pendingCoverSourcePath
+          ? { verticalImageSourcePath: pendingCoverSourcePath }
+          : {}),
         characters: characterInputs,
       });
+      // Sync image URLs from the response: replaced images now live at new
+      // CDN URLs, and resending the old URL on a later save would revert them.
+      setPendingCoverSourcePath(null);
+      setCharacters((prev) =>
+        prev.map((c) => ({
+          ...c,
+          imageUrl:
+            updated.characters.find((uc) => uc.slug === c.slug)?.imageUrl ??
+            c.imageUrl,
+          imageSourcePath: null,
+        }))
+      );
       queryClient.invalidateQueries({ queryKey: ["adminGame", gameId] });
       queryClient.invalidateQueries({ queryKey: ["adminGames"] });
       setSnackbar({ message: "Game saved", type: "success" });
@@ -315,23 +352,20 @@ export function GameForm({ gameId }: GameFormProps) {
             onChangeText={(text) => setField("sortOrderText", text)}
             keyboardType="numeric"
           />
-          <Text
-            variant="labelMedium"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            Cover image
-          </Text>
-          <Image
-            source={{ uri: game.verticalImageUrl }}
-            style={styles.coverPreview}
-            resizeMode="cover"
-          />
-          <Text
-            variant="bodySmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            Images can&apos;t be changed after publishing.
-          </Text>
+          {uploadBasePath && (
+            <GameImageUploadField
+              label="Cover image (vertical)"
+              aspectRatio={[9, 16]}
+              resizeVariant="vertical"
+              existingPath={pendingCoverSourcePath}
+              existingUrl={game.verticalImageUrl}
+              buildGcsPath={(filename) =>
+                gameCoverImagePath(uploadBasePath, filename)
+              }
+              onUploaded={(gcsPath) => setPendingCoverSourcePath(gcsPath)}
+              onRemove={() => setPendingCoverSourcePath(null)}
+            />
+          )}
         </Card>
 
         <View style={styles.charactersHeader}>
@@ -352,19 +386,27 @@ export function GameForm({ gameId }: GameFormProps) {
             count={characters.length}
             character={character}
             imageSlot={
-              <View style={styles.characterImageBlock}>
-                <Text
-                  variant="labelMedium"
-                  style={{ color: theme.colors.onSurfaceVariant }}
-                >
-                  Character image
-                </Text>
-                <Image
-                  source={{ uri: character.imageUrl }}
-                  style={styles.characterPreview}
-                  resizeMode="cover"
+              uploadBasePath ? (
+                <GameImageUploadField
+                  label="Character image"
+                  aspectRatio={[1, 1]}
+                  existingPath={character.imageSourcePath}
+                  existingUrl={character.imageUrl}
+                  buildGcsPath={(filename) =>
+                    gameCharacterImagePath(
+                      uploadBasePath,
+                      SLUG_PATTERN.test(character.slug)
+                        ? character.slug
+                        : `c${index}`,
+                      filename
+                    )
+                  }
+                  onUploaded={(gcsPath) =>
+                    setCharacterImageSourcePath(index, gcsPath)
+                  }
+                  onRemove={() => setCharacterImageSourcePath(index, null)}
                 />
-              </View>
+              ) : null
             }
             onField={(field, value) => setCharacterField(index, field, value)}
             onCommit={() => {}}
@@ -451,21 +493,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
-  },
-  coverPreview: {
-    width: 135,
-    height: 240,
-    borderRadius: 8,
-    marginVertical: 8,
-  },
-  characterImageBlock: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  characterPreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
   },
   charactersHeader: {
     marginBottom: 12,
