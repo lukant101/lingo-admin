@@ -1,8 +1,7 @@
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { getCollection, getPlatformDeckDraft } from "@/lib/api/platformDecks";
-import type { CollectionResponse } from "@/types/collection";
+import { getPlatformDeckDraft } from "@/lib/api/platformDecks";
 import { useQuery } from "@tanstack/react-query";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
@@ -17,13 +16,6 @@ export default function DeckCollectionsScreen() {
     queryKey: ["platformDeck", "draft", draftId],
     queryFn: () => getPlatformDeckDraft(draftId!),
     enabled: !!draftId,
-  });
-
-  const { data: primaryCollection } = useQuery({
-    queryKey: ["collection", draft?.collectionId],
-    queryFn: (): Promise<CollectionResponse> =>
-      getCollection(draft!.collectionId),
-    enabled: !!draft,
   });
 
   if (!draftId) return null;
@@ -46,20 +38,7 @@ export default function DeckCollectionsScreen() {
         variant="outline"
         onPress={() => router.push(`/admin/decks/${draft.deckId}` as never)}
       />
-      <CollectionMembershipList
-        deckId={draft.deckId}
-        initialMemberships={
-          primaryCollection
-            ? [
-                {
-                  collection: primaryCollection,
-                  published: false,
-                  sortOrder: 0,
-                },
-              ]
-            : []
-        }
-      />
+      <CollectionMembershipList deckId={draft.deckId} />
     </ScrollView>
   );
 }

@@ -6,6 +6,7 @@ import {
   StyledSnackbar,
   type SnackbarState,
 } from "@/components/ui/StyledSnackbar";
+import { getPlatformDeck, listPlatformDeckCollections } from "@/lib/api/decks";
 import {
   addDeckToCollection,
   removeDeckFromCollection,
@@ -13,7 +14,10 @@ import {
 } from "@/lib/api/platformDecks";
 import { DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionResponse } from "@/types/collection";
-import { useState } from "react";
+import type { DeckCollectionMembership } from "@/types/deck";
+import type { DeckLevel } from "@/types/langs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   Dialog,
@@ -24,24 +28,39 @@ import {
   useTheme,
 } from "react-native-paper";
 
-type Membership = {
-  collection: CollectionResponse;
-  published: boolean;
-  sortOrder: number;
-};
+type Membership = DeckCollectionMembership;
 
 type CollectionMembershipListProps = {
   deckId: string;
-  initialMemberships: Membership[];
+  /**
+   * Level to offer collections for. The edit form passes its current (possibly
+   * unsaved) selection; elsewhere the deck's saved level is used.
+   */
+  level?: DeckLevel;
 };
 
 export function CollectionMembershipList({
   deckId,
-  initialMemberships,
+  level,
 }: CollectionMembershipListProps) {
   const theme = useTheme();
-  const [memberships, setMemberships] =
-    useState<Membership[]>(initialMemberships);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["adminPlatformDeckCollections", deckId],
+    queryFn: () => listPlatformDeckCollections(deckId),
+  });
+  // Shares the deck editor's query key, so this is deduped there and costs one
+  // request on the draft screens. Only the immutable variant code is needed.
+  const { data: deck } = useQuery({
+    queryKey: ["adminPlatformDeck", deckId],
+    queryFn: () => getPlatformDeck(deckId),
+  });
+  // Mutations below update rows optimistically, so the fetched list seeds local
+  // state rather than driving the render directly.
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  useEffect(() => {
+    if (data) setMemberships(data);
+  }, [data]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerValue, setPickerValue] = useState<CollectionResponse | null>(
     null
@@ -60,9 +79,9 @@ export function CollectionMembershipList({
   const handleTogglePublished = async (idx: number, value: boolean) => {
     const membership = memberships[idx];
     setMembership(idx, { published: value });
-    setBusy(membership.collection.id);
+    setBusy(membership.collectionId);
     try {
-      await updateCollectionDeck(membership.collection.id, deckId, {
+      await updateCollectionDeck(membership.collectionId, deckId, {
         published: value,
       });
       setSnackbar({
@@ -83,9 +102,9 @@ export function CollectionMembershipList({
 
   const handleSortOrderBlur = async (idx: number) => {
     const membership = memberships[idx];
-    setBusy(membership.collection.id);
+    setBusy(membership.collectionId);
     try {
-      await updateCollectionDeck(membership.collection.id, deckId, {
+      await updateCollectionDeck(membership.collectionId, deckId, {
         sortOrder: membership.sortOrder,
       });
       setSnackbar({ message: "Sort order saved", type: "success" });
@@ -101,9 +120,9 @@ export function CollectionMembershipList({
 
   const handleRemove = async (idx: number) => {
     const membership = memberships[idx];
-    setBusy(membership.collection.id);
+    setBusy(membership.collectionId);
     try {
-      await removeDeckFromCollection(membership.collection.id, deckId);
+      await removeDeckFromCollection(membership.collectionId, deckId);
       setMemberships((prev) => prev.filter((_, i) => i !== idx));
       setSnackbar({ message: "Removed from collection", type: "success" });
     } catch (err) {
@@ -118,7 +137,7 @@ export function CollectionMembershipList({
 
   const handleAdd = async () => {
     if (!pickerValue) return;
-    if (memberships.some((m) => m.collection.id === pickerValue.id)) {
+    if (memberships.some((m) => m.collectionId === pickerValue.id)) {
       setSnackbar({
         message: "Already in this collection",
         type: "error",
@@ -133,10 +152,11 @@ export function CollectionMembershipList({
         sortOrder: 0,
         published: true,
       });
-      setMemberships((prev) => [
-        ...prev,
-        { collection: pickerValue, published: true, sortOrder: 0 },
-      ]);
+      // Refetch rather than construct the row locally: the picker's collection
+      // has no langVariantCode, and the server owns the inclusion defaults.
+      await queryClient.invalidateQueries({
+        queryKey: ["adminPlatformDeckCollections", deckId],
+      });
       setSnackbar({ message: "Added to collection", type: "success" });
       setPickerOpen(false);
       setPickerValue(null);
@@ -158,31 +178,36 @@ export function CollectionMembershipList({
       >
         Collections
       </Text>
-      {memberships.length === 0 ? (
+      {isLoading ? (
         <Text
           variant="bodySmall"
           style={{ color: theme.colors.onSurfaceVariant }}
         >
-          Not in any collections.
+          Loading collections…
+        </Text>
+      ) : memberships.length === 0 ? (
+        <Text
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          Not in any collections — visible to learners without a collection
+          gate.
         </Text>
       ) : (
         <View style={{ gap: 12 }}>
           {memberships.map((m, i) => (
             <View
-              key={m.collection.id}
-              style={[
-                styles.row,
-                { borderColor: theme.colors.outlineVariant },
-              ]}
+              key={m.collectionId}
+              style={[styles.row, { borderColor: theme.colors.outlineVariant }]}
             >
               <View style={{ flex: 1 }}>
-                <Text variant="titleSmall">{m.collection.title}</Text>
+                <Text variant="titleSmall">{m.title}</Text>
                 <Text
                   variant="bodySmall"
                   style={{ color: theme.colors.onSurfaceVariant }}
                 >
-                  {m.collection.level} · {m.collection.langVariantId}
-                  {m.collection.forKids ? " · kids" : ""}
+                  {m.level} · {m.langVariantCode}
+                  {m.forKids ? " · kids" : ""}
                 </Text>
               </View>
               <View style={styles.controls}>
@@ -196,7 +221,7 @@ export function CollectionMembershipList({
                   <Switch
                     value={m.published}
                     onValueChange={(v) => handleTogglePublished(i, v)}
-                    disabled={busy === m.collection.id}
+                    disabled={busy === m.collectionId}
                   />
                 </View>
                 <View style={styles.sortCell}>
@@ -218,7 +243,7 @@ export function CollectionMembershipList({
                   icon="delete"
                   size={20}
                   onPress={() => handleRemove(i)}
-                  disabled={busy === m.collection.id}
+                  disabled={busy === m.collectionId}
                   iconColor={theme.colors.error}
                 />
               </View>
@@ -249,6 +274,8 @@ export function CollectionMembershipList({
               <CollectionPicker
                 value={pickerValue}
                 onChange={setPickerValue}
+                lockedLangVariantCode={deck?.langVariantCode}
+                lockedLevel={level ?? deck?.level}
               />
             </View>
           </Dialog.ScrollArea>
@@ -270,10 +297,7 @@ export function CollectionMembershipList({
         </Dialog>
       </Portal>
 
-      <StyledSnackbar
-        snackbar={snackbar}
-        onDismiss={() => setSnackbar(null)}
-      />
+      <StyledSnackbar snackbar={snackbar} onDismiss={() => setSnackbar(null)} />
     </Card>
   );
 }

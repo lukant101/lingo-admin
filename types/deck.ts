@@ -40,6 +40,8 @@ export type PlatformDeck = {
   level: DeckLevel;
   langId: string;
   langVariantId: string;
+  /** Human-usable variant code (e.g. "en-ca"); the id alone isn't displayable. */
+  langVariantCode: string;
   horizontalImageUrl: string;
   verticalImageUrl: string;
   previewVideoUrl: string | null;
@@ -61,6 +63,19 @@ export type PlatformDeckWithCards = PlatformDeck & {
 
 export type PlatformDeckSummary = PlatformDeck & {
   cardCount: number;
+};
+
+/** One collection a deck belongs to, with its per-inclusion visibility gate. */
+export type DeckCollectionMembership = {
+  collectionId: string;
+  title: string;
+  level: DeckLevel;
+  langVariantId: string;
+  langVariantCode: string;
+  forKids: boolean;
+  mature: boolean;
+  published: boolean;
+  sortOrder: number;
 };
 
 export type PaginatedPlatformDecks = {

@@ -8,10 +8,8 @@ import {
 } from "@/components/ui/StyledSnackbar";
 import {
   deletePlatformDeckDraft,
-  getCollection,
   getPlatformDeckDraft,
 } from "@/lib/api/platformDecks";
-import type { CollectionResponse } from "@/types/collection";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -54,15 +52,6 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     }, 10_000);
     return () => clearInterval(t);
   }, [draft?.status, startedAt]);
-
-  // Resolve the primary collection so the membership list has something to show.
-  const primaryCollectionId = draft?.collectionId;
-  const { data: primaryCollection } = useQuery({
-    queryKey: ["collection", primaryCollectionId],
-    queryFn: (): Promise<CollectionResponse> =>
-      getCollection(draft!.collectionId),
-    enabled: !!draft && draft.status === "processing_completed",
-  });
 
   const handleBackToEdit = () => {
     router.replace(`/admin/platform-decks/${draftId}/edit`);
@@ -323,20 +312,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
       </Card>
 
       {isPublishedWithDeck && (
-        <CollectionMembershipList
-          deckId={draft.deckId!}
-          initialMemberships={
-            primaryCollection
-              ? [
-                  {
-                    collection: primaryCollection,
-                    published: false,
-                    sortOrder: 0,
-                  },
-                ]
-              : []
-          }
-        />
+        <CollectionMembershipList deckId={draft.deckId!} />
       )}
 
       <StyledSnackbar snackbar={snackbar} onDismiss={() => setSnackbar(null)} />
