@@ -171,6 +171,18 @@ export function platformDeckCoverImagePath(
   return `${uploadBasePath}/images/cover_${variant}_${randomId()}.${ext}`;
 }
 
+/**
+ * Build a staging path for a replacement video poster frame on a published
+ * deck. Staged alongside the covers; the API copies it to the CDN on save.
+ */
+export function platformDeckFirstFramePath(
+  uploadBasePath: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "jpg";
+  return `${uploadBasePath}/images/first_frame_${randomId()}.${ext}`;
+}
+
 export function gameCoverImagePath(
   uploadBasePath: string,
   filename: string

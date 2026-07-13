@@ -18,7 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
 import { DECK_LEVELS } from "@/lib/constants";
-import { platformDeckCoverImagePath } from "@/lib/storage";
+import {
+  platformDeckCoverImagePath,
+  platformDeckFirstFramePath,
+} from "@/lib/storage";
 import type { DeckLevel } from "@/types/langs";
 
 type PlatformDeckFormProps = {
@@ -54,6 +57,9 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   const [pendingVerticalPath, setPendingVerticalPath] = useState<string | null>(
     null
   );
+  const [pendingFirstFramePath, setPendingFirstFramePath] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
   const [playingCardId, setPlayingCardId] = useState<string | null>(null);
 
@@ -139,11 +145,15 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         ...(pendingVerticalPath
           ? { verticalImageSourcePath: pendingVerticalPath }
           : {}),
+        ...(pendingFirstFramePath
+          ? { firstVideoFrameSourcePath: pendingFirstFramePath }
+          : {}),
       });
-      // Replaced covers now live at new CDN URLs; drop the staged paths so a
+      // Replaced images now live at new CDN URLs; drop the staged paths so a
       // later save doesn't re-copy them.
       setPendingHorizontalPath(null);
       setPendingVerticalPath(null);
+      setPendingFirstFramePath(null);
       queryClient.invalidateQueries({
         queryKey: ["adminPlatformDeck", deckId],
       });
@@ -261,6 +271,32 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                 onUploaded={(gcsPath) => setPendingVerticalPath(gcsPath)}
                 onRemove={() => setPendingVerticalPath(null)}
               />
+              {/* The poster frame is only meaningful for a deck with a video —
+                  it's normally extracted from the video on publish. */}
+              {deck.previewVideoUrl && (
+                <>
+                  <View style={styles.imageSpacer} />
+                  <GameImageUploadField
+                    label="Video poster frame (1080x1920)"
+                    aspectRatio={[9, 16]}
+                    resizeVariant="vertical"
+                    existingPath={pendingFirstFramePath}
+                    existingUrl={deck.firstVideoFrameUrl}
+                    buildGcsPath={(filename) =>
+                      platformDeckFirstFramePath(uploadBasePath, filename)
+                    }
+                    onUploaded={(gcsPath) => setPendingFirstFramePath(gcsPath)}
+                    onRemove={() => setPendingFirstFramePath(null)}
+                  />
+                  <Text
+                    variant="bodySmall"
+                    style={{ color: theme.colors.onSurfaceVariant }}
+                  >
+                    Extracted from the video on publish. Upload one here to
+                    override it.
+                  </Text>
+                </>
+              )}
             </>
           )}
         </Card>
