@@ -145,8 +145,18 @@ Deliver characters **in play order**. **Character 1 is the one the learner meets
 ### Name
 
 - **Language:** target language, culturally plausible for the setting and period.
-- **Hard limit 200 characters** — in practice a first name, or a name and role.
-- Shown to the learner when they meet the character.
+- **Hard limit 200 characters** — in practice a few words.
+- Shown to the learner the moment they meet the character.
+- **Give a first name plus a short role**, not a bare first name: `Rafael, el heladero`,
+  `Diego, tu amigo`, `Mme Aubert, la portière`. The role is what orients the learner in the
+  scene — use the **job** when the job is why they are talking to this person, and the
+  **relationship** when that matters more (a friend, a landlady, an aunt). Drop the role only
+  when neither adds anything.
+- **Name the trade broadly — never the thing the learner has to ask for.** A hawker whose
+  scene turns on being asked for a rosette is `vendedor ambulante`, not
+  `vendedor de escarapelas`; otherwise the label answers the scene before he opens his mouth.
+  Same rule as §6: what the learner must discover by asking does not go in a field they are
+  shown for free.
 
 ### Slug
 
@@ -421,6 +431,8 @@ that way so they are not pasted in.
 - [ ] Every scene has **exactly one** task, named in one sentence, and no scene's hand-off
       condition contains an "and".
 - [ ] Each intro states that scene's task in one or two sentences.
+- [ ] Each character name is a first name plus a short role, and no role names the very thing
+      the learner has to ask that character for.
 - [ ] Every character except the last calls `hand_off` with a **valid slug** and is told never
       to call `complete_challenge`; the last calls `complete_challenge` and is told never to
       call `hand_off`.

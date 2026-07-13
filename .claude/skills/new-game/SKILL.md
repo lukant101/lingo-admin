@@ -53,6 +53,13 @@ Length — keep all three short. Detail belongs in the character prompts, not he
 - Challenge: what the learner must accomplish. One or two sentences, the bare goal — it is
   injected into every character's prompt, so keep it tight.
 - Accomplishment: past-tense summary for the celebration screen. One sentence.
+- Character name: **first name plus a short role**, target language — `Rafael, el heladero`,
+  `Diego, tu amigo`, `Mme Aubert, la portière`. It is displayed on meeting, so the role is
+  what orients the learner: give the job when the job is why they are talking to this person,
+  and the relationship when that matters more. A bare first name is fine only when neither
+  does. Keep it to a few words. **Name the trade broadly, never the thing the learner has to
+  ask for** — a hawker whose scene turns on being asked for a rosette is `vendedor ambulante`,
+  not `vendedor de escarapelas`, or the label answers the scene before he speaks.
 - Character intro: shown when the learner first meets the character. State **that scene's
   single task** (§3), not what the character looks like — the portrait already shows that.
   Name the character's role (flower seller, newspaper vendor) only when it bears on the
