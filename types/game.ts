@@ -1,18 +1,21 @@
 import type { DeckLevel } from "@/types/langs";
 
-// Gemini prebuilt TTS voices offered for game characters.
+export type VoiceGender = "female" | "male";
+
+// Gemini prebuilt TTS voices offered for game characters (the set supported
+// by the Live API), with gender and style per Google's voice list.
 export const GEMINI_VOICES = [
-  "Kore",
-  "Puck",
-  "Charon",
-  "Fenrir",
-  "Aoede",
-  "Leda",
-  "Orus",
-  "Zephyr",
+  { name: "Aoede", gender: "female", style: "Breezy" },
+  { name: "Kore", gender: "female", style: "Firm" },
+  { name: "Leda", gender: "female", style: "Youthful" },
+  { name: "Zephyr", gender: "female", style: "Bright" },
+  { name: "Charon", gender: "male", style: "Informative" },
+  { name: "Fenrir", gender: "male", style: "Excitable" },
+  { name: "Orus", gender: "male", style: "Firm" },
+  { name: "Puck", gender: "male", style: "Upbeat" },
 ] as const;
 
-export type GeminiVoice = (typeof GEMINI_VOICES)[number];
+export type GeminiVoice = (typeof GEMINI_VOICES)[number]["name"];
 
 // --- Published games (admin/games) ---
 
