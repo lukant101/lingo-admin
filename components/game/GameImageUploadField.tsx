@@ -5,7 +5,11 @@ import * as ImagePicker from "expo-image-picker";
 
 import { Button } from "@/components/ui/Button";
 import { UploadProgressBar } from "@/components/submission/UploadProgressBar";
-import { resizeForCover, type ResizeResult } from "@/lib/imageProcessing";
+import {
+  resizeForCover,
+  type CoverVariant,
+  type ResizeResult,
+} from "@/lib/imageProcessing";
 import { getFileDownloadURL, uploadFileToStorage } from "@/lib/storage";
 import { validateFile } from "@/lib/uploadValidation";
 import type { MediaUpload } from "@/types/submission";
@@ -14,7 +18,7 @@ type GameImageUploadFieldProps = {
   label: string;
   aspectRatio: [number, number];
   /** When set, the picked image is resized/cropped like deck covers. */
-  resizeVariant?: "horizontal" | "vertical";
+  resizeVariant?: CoverVariant;
   /** GCS path already stored on the draft (preview is resolved from it). */
   existingPath: string | null;
   /** Direct preview URL (e.g. CDN URL of a published game image). Used as a
