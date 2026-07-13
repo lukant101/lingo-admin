@@ -1,6 +1,7 @@
 import { apiGet, apiPatch } from "./client";
 import type { DeckLevel } from "@/types/langs";
 import type {
+  DeckCollectionMembership,
   PaginatedPlatformDecks,
   PlatformDeckWithCards,
   UpdatePlatformDeckInput,
@@ -36,6 +37,15 @@ export async function getPlatformDeck(
   deckId: string
 ): Promise<PlatformDeckWithCards> {
   return apiGet<PlatformDeckWithCards>(`/admin/decks/${deckId}`);
+}
+
+/** Collections this deck belongs to — the reverse of GET /admin/collections/:id. */
+export async function listPlatformDeckCollections(
+  deckId: string
+): Promise<DeckCollectionMembership[]> {
+  return apiGet<DeckCollectionMembership[]>(
+    `/admin/decks/${deckId}/collections`
+  );
 }
 
 export async function updatePlatformDeck(

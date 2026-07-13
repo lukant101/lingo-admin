@@ -1,11 +1,9 @@
 import LanguageSearch from "@/components/LanguageSearch";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import {
-  createCollection,
-  listCollections,
-} from "@/lib/api/platformDecks";
+import { createCollection, listCollections } from "@/lib/api/platformDecks";
 import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
+import { getVariantName } from "@/lib/languages";
 import type { CollectionResponse } from "@/types/collection";
 import type { DeckLevel } from "@/types/langs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +23,19 @@ type CollectionPickerProps = {
   value: CollectionResponse | null;
   onChange: (collection: CollectionResponse) => void;
   disabled?: boolean;
+  /**
+   * Pin the picker to one language variant. Set when the deck already exists:
+   * its variant is immutable, and a collection only accepts decks of its own
+   * variant, so asking the admin to choose a language would be busywork at
+   * best and a rejected request at worst.
+   */
+  lockedLangVariantCode?: string;
+  /**
+   * Pin the level filter. Set when the deck already exists, so the collections
+   * offered match the level the deck is being saved with — including an
+   * unsaved change in the edit form.
+   */
+  lockedLevel?: DeckLevel;
 };
 
 type LangSelection = { code: string; name: string } | null;
@@ -33,12 +44,24 @@ export function CollectionPicker({
   value,
   onChange,
   disabled,
+  lockedLangVariantCode,
+  lockedLevel,
 }: CollectionPickerProps) {
   const theme = useTheme();
   const queryClient = useQueryClient();
 
-  const [lang, setLang] = useState<LangSelection>(null);
-  const [level, setLevel] = useState<DeckLevel | null>(null);
+  const [pickedLang, setPickedLang] = useState<LangSelection>(null);
+  const lockedLang: LangSelection = lockedLangVariantCode
+    ? {
+        code: lockedLangVariantCode,
+        name: getVariantName(lockedLangVariantCode),
+      }
+    : null;
+  const lang = lockedLang ?? pickedLang;
+  const setLang = setPickedLang;
+  const [pickedLevel, setPickedLevel] = useState<DeckLevel | null>(null);
+  const level = lockedLevel ?? pickedLevel;
+  const setLevel = setPickedLevel;
   const [forKids, setForKids] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
@@ -106,7 +129,10 @@ export function CollectionPicker({
   }
 
   const canCreate =
-    !!lang && !!level && createTitle.trim().length > 0 && !createMutation.isPending;
+    !!lang &&
+    !!level &&
+    createTitle.trim().length > 0 &&
+    !createMutation.isPending;
 
   return (
     <View style={styles.container}>
@@ -120,37 +146,55 @@ export function CollectionPicker({
         variant="bodySmall"
         style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
       >
-        Pick filters below, then choose an existing collection or create a new
-        one.
+        {lockedLang || lockedLevel
+          ? "Choose an existing collection or create a new one — filters below are set by the deck."
+          : "Pick filters below, then choose an existing collection or create a new one."}
       </Text>
 
-      <LanguageSearch value={lang ?? undefined} onSelect={setLang} />
+      {lockedLang ? (
+        <Text
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          Language: {lockedLang.name} — fixed by the deck.
+        </Text>
+      ) : (
+        <LanguageSearch value={lang ?? undefined} onSelect={setLang} />
+      )}
 
-      <Text
-        variant="labelMedium"
-        style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
-      >
-        Level
-      </Text>
-      <View style={styles.chipRow}>
-        {DECK_LEVELS.map((l) => (
-          <Chip
-            key={l}
-            mode="outlined"
-            selected={level === l}
-            onPress={() => setLevel(level === l ? null : l)}
-            style={styles.chip}
+      {lockedLevel ? (
+        <Text
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          Level: {lockedLevel} — taken from the deck.
+        </Text>
+      ) : (
+        <>
+          <Text
+            variant="labelMedium"
+            style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
           >
-            {l}
-          </Chip>
-        ))}
-      </View>
+            Level
+          </Text>
+          <View style={styles.chipRow}>
+            {DECK_LEVELS.map((l) => (
+              <Chip
+                key={l}
+                mode="outlined"
+                selected={level === l}
+                onPress={() => setLevel(level === l ? null : l)}
+                style={styles.chip}
+              >
+                {l}
+              </Chip>
+            ))}
+          </View>
+        </>
+      )}
 
       <View style={styles.switchRow}>
-        <Text
-          variant="bodyMedium"
-          style={{ color: theme.colors.onSurface }}
-        >
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
           For kids
         </Text>
         <Switch value={forKids} onValueChange={setForKids} />

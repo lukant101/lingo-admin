@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { IconButton, Switch, Text, useTheme } from "react-native-paper";
 
 import { GameImageUploadField } from "@/components/game/GameImageUploadField";
+import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -19,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
 import { DECK_LEVELS } from "@/lib/constants";
+import { getVariantName } from "@/lib/languages";
 import {
   platformDeckAudioPath,
   platformDeckCoverImagePath,
@@ -221,6 +223,18 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Deck
           </Text>
+          {/* The language variant is fixed at creation and cannot be changed. */}
+          <View style={styles.infoRow}>
+            <Text
+              variant="bodyMedium"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              Language
+            </Text>
+            <Text variant="bodyMedium">
+              {getVariantName(deck.langVariantCode)}
+            </Text>
+          </View>
           <Input
             label="Title"
             value={fields.title}
@@ -341,6 +355,10 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
           </Card>
         )}
 
+        {/* Collection membership carries the learner-visibility gate: a deck in
+            collections is hidden unless at least one inclusion is published. */}
+        <CollectionMembershipList deckId={deckId} level={fields.level} />
+
         <Card style={styles.card}>
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Links
@@ -444,6 +462,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    marginBottom: 8,
   },
   imageSpacer: {
     height: 24,
