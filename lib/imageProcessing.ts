@@ -2,7 +2,7 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
 export const LOGO_SIZE = 512;
 
-type CoverVariant = "horizontal" | "vertical";
+export type CoverVariant = "horizontal" | "vertical" | "square";
 
 type Dimensions = {
   width: number;
@@ -17,16 +17,19 @@ export type ResizeResult = {
 export const MAX_COVER_DIMENSIONS: Record<CoverVariant, Dimensions> = {
   horizontal: { width: 1920, height: 1080 },
   vertical: { width: 1080, height: 1920 },
+  square: { width: 1080, height: 1080 },
 };
 
 export const UPSCALE_TARGET_DIMENSIONS: Record<CoverVariant, Dimensions> = {
   horizontal: { width: 1280, height: 720 },
   vertical: { width: 720, height: 1280 },
+  square: { width: 720, height: 720 },
 };
 
 export const MIN_COVER_DIMENSIONS: Record<CoverVariant, Dimensions> = {
   horizontal: { width: 960, height: 540 },
   vertical: { width: 540, height: 960 },
+  square: { width: 540, height: 540 },
 };
 
 export async function resizeForCover(

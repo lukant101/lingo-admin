@@ -390,6 +390,7 @@ export function GameForm({ gameId }: GameFormProps) {
                 <GameImageUploadField
                   label="Character image"
                   aspectRatio={[1, 1]}
+                  resizeVariant="square"
                   existingPath={character.imageSourcePath}
                   existingUrl={character.imageUrl}
                   buildGcsPath={(filename) =>

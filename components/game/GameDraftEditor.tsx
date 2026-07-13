@@ -491,6 +491,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
                   <GameImageUploadField
                     label="Character image"
                     aspectRatio={[1, 1]}
+                    resizeVariant="square"
                     existingPath={character.imageSourcePath}
                     buildGcsPath={(filename) =>
                       gameCharacterImagePath(
