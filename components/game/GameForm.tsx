@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Dialog, Portal, Switch, Text, useTheme } from "react-native-paper";
@@ -251,7 +251,12 @@ export function GameForm({ gameId }: GameFormProps) {
   };
 
   if (isLoading || (game && fields === null)) {
-    return <LoadingSpinner message="Loading game..." />;
+    return (
+      <>
+        <Stack.Screen options={{ title: game?.title || "Edit game" }} />
+        <LoadingSpinner message="Loading game..." />
+      </>
+    );
   }
 
   if (!game || !fields) {
@@ -259,6 +264,7 @@ export function GameForm({ gameId }: GameFormProps) {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
+        <Stack.Screen options={{ title: "Edit game" }} />
         <Card style={styles.card}>
           <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
             {(error as Error)?.message ?? "Failed to load game."}
@@ -277,6 +283,7 @@ export function GameForm({ gameId }: GameFormProps) {
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
+      <Stack.Screen options={{ title: game.title || "Edit game" }} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
