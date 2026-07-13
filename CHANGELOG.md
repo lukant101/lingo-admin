@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-23
+
+### Added
+
+- Video creation tools: a new Videos tab for building platform videos, with AI-assisted script chat, image generation, TTS audio, and song generation
+- Games: a new game editor with drafts, translations, character images/gender, and an updated Gemini voice list
+- Deck and collection management: edit published platform decks, assign decks to collections, and more flexible audio/video uploads
+
+### Changed
+
+- Reorganized navigation: Games, Decks, and Video Projects now live on the bottom tab bar
+
+### Fixed
+
+- Various upload and UI error fixes across the deck and game editors
+
+### Removed
+
+- Removed the Studios tab and the creator application/monetization flows it depended on — not part of this admin app
+
 ## [0.1.1] - 2026-05-14
 
 ### Changed
