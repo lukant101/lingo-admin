@@ -12,6 +12,7 @@ import {
   type SnackbarState,
 } from "@/components/ui/StyledSnackbar";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { getAudioDurationMs } from "@/lib/audioDuration";
 import { ApiClientError } from "@/lib/api/client";
 import {
   getPlatformDeckDraft,
@@ -52,7 +53,6 @@ import type {
 import type { CardDraft, MediaUpload } from "@/types/submission";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createAudioPlayer } from "expo-audio";
 import * as DocumentPicker from "expo-document-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useReducer, useState } from "react";
@@ -210,25 +210,6 @@ function cardsToPayload(cards: CardDraft[]): PlatformDeckDraftCard[] {
       text: c.text.trim(),
       audioPath: c.audioGcsPath ?? "",
     }));
-}
-
-function getAudioDurationMs(uri: string): Promise<number> {
-  return new Promise((resolve) => {
-    const player = createAudioPlayer(uri);
-    const sub = player.addListener("playbackStatusUpdate", (status) => {
-      if (status.isLoaded) {
-        sub.remove();
-        const ms = Math.round(player.duration * 1000);
-        player.remove();
-        resolve(ms);
-      }
-    });
-    setTimeout(() => {
-      sub.remove();
-      player.remove();
-      resolve(0);
-    }, 5000);
-  });
 }
 
 export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
@@ -472,8 +453,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     );
 
     const rawMime = getMimeType(filename);
-    const audioContentType =
-      rawMime === "video/mp4" ? "audio/mp4" : rawMime;
+    const audioContentType = rawMime === "video/mp4" ? "audio/mp4" : rawMime;
 
     dispatch({
       type: "UPDATE_CARD",
@@ -504,9 +484,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         },
       });
       const nextCards = state.cards.map((c, i) =>
-        i === cardIndex
-          ? { ...c, audioGcsPath: gcsPath, audioUri: uri }
-          : c
+        i === cardIndex ? { ...c, audioGcsPath: gcsPath, audioUri: uri } : c
       );
       await patchCards(nextCards);
     } catch (err) {
@@ -664,7 +642,13 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
 
     let resizeResult: ResizeResult;
     try {
-      resizeResult = await resizeForCover(uri, variant, width, height, mimeType);
+      resizeResult = await resizeForCover(
+        uri,
+        variant,
+        width,
+        height,
+        mimeType
+      );
     } catch {
       dispatch({
         type: actionType,
@@ -682,7 +666,11 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     const resizedUri = resizeResult.uri;
     const ext = resizeResult.format === "jpeg" ? "jpg" : resizeResult.format;
     const filename = `cover.${ext}`;
-    const gcsPath = adminCoverImagePath(draft.uploadBasePath, variant, filename);
+    const gcsPath = adminCoverImagePath(
+      draft.uploadBasePath,
+      variant,
+      filename
+    );
 
     dispatch({
       type: actionType,
@@ -1117,9 +1105,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
   const canAdvanceStep = (): boolean => {
     switch (state.currentStep) {
       case 2:
-        return (
-          state.video?.gcsPath != null || state.deckAudio?.gcsPath != null
-        );
+        return state.video?.gcsPath != null || state.deckAudio?.gcsPath != null;
       case 3:
         return (
           state.coverHorizontal?.gcsPath != null &&
@@ -1209,9 +1195,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     if (
       count === 3 &&
       state.cards.length >= 1 &&
-      state.cards.every(
-        (c) => c.audioGcsPath && c.text.trim().length > 0
-      )
+      state.cards.every((c) => c.audioGcsPath && c.text.trim().length > 0)
     )
       count = 4;
     return count;
@@ -1402,7 +1386,9 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
             <Input
               label="Deck title"
               value={state.title}
-              onChangeText={(text) => dispatch({ type: "SET_TITLE", title: text })}
+              onChangeText={(text) =>
+                dispatch({ type: "SET_TITLE", title: text })
+              }
               onBlur={handleTitleBlur}
               maxLength={200}
             />
@@ -1442,8 +1428,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                 }
                 size={20}
                 color={
-                  state.coverHorizontal?.gcsPath &&
-                  state.coverVertical?.gcsPath
+                  state.coverHorizontal?.gcsPath && state.coverVertical?.gcsPath
                     ? theme.colors.primary
                     : theme.colors.error
                 }
@@ -1504,9 +1489,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           title={getNextButtonText()}
           onPress={handleNext}
           loading={state.isSaving || state.isPublishing}
-          disabled={
-            state.isSaving || state.isPublishing || isAnyUploading
-          }
+          disabled={state.isSaving || state.isPublishing || isAnyUploading}
           style={styles.navButton}
         />
       </View>
