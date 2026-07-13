@@ -19,7 +19,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { deleteGame, getGame, updateGame } from "@/lib/api/games";
 import { DECK_LEVELS, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import { getVariantName } from "@/lib/languages";
-import { gameCharacterImagePath, gameCoverImagePath } from "@/lib/storage";
+import {
+  gameCharacterImagePath,
+  gameCoverImagePath,
+  storagePath,
+} from "@/lib/storage";
 import type { DeckLevel } from "@/types/langs";
 import type { GameCharacterInput } from "@/types/game";
 
@@ -111,7 +115,9 @@ export function GameForm({ gameId }: GameFormProps) {
   // Replacement images are uploaded like draft images: to the mates bucket
   // under the gameDrafts prefix (with the game id in the draft-id slot), then
   // the API copies them to the CDN on save.
-  const uploadBasePath = user ? `gameDrafts/${user.uid}/${gameId}` : null;
+  const uploadBasePath = user
+    ? storagePath("gameDrafts", user.uid, gameId)
+    : null;
 
   const setField = <K extends keyof GameFields>(
     key: K,

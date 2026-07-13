@@ -21,6 +21,7 @@ import { DECK_LEVELS } from "@/lib/constants";
 import {
   platformDeckCoverImagePath,
   platformDeckFirstFramePath,
+  storagePath,
 } from "@/lib/storage";
 import type { DeckLevel } from "@/types/langs";
 
@@ -100,7 +101,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   // the platformDeckDrafts prefix (with the deck id in the draft-id slot), then
   // the API copies them to the CDN on save.
   const uploadBasePath = user
-    ? `platformDeckDrafts/${user.uid}/${deckId}`
+    ? storagePath("platformDeckDrafts", user.uid, deckId)
     : null;
 
   const setField = <K extends keyof DeckFields>(
