@@ -43,6 +43,15 @@ export type GeminiVoice = (typeof GEMINI_VOICES)[number]["name"];
 
 // --- Published games (admin/games) ---
 
+/** Setting/challenge translations keyed by target language-variant code
+ * (currently 'en-ca', or 'es-419' for English games). */
+export type GameTranslations = Record<
+  string,
+  { setting: string; challenge: string }
+>;
+
+export type GameIntroTranslations = Record<string, string>;
+
 export type AdminGameCharacter = {
   id: string;
   gameId: string;
@@ -50,6 +59,7 @@ export type AdminGameCharacter = {
   name: string;
   imageUrl: string;
   intro: string;
+  introTranslations: GameIntroTranslations;
   voiceName: string;
   systemPrompt: string;
   position: number;
@@ -69,6 +79,7 @@ export type AdminGame = {
   setting: string;
   challenge: string;
   accomplishment: string;
+  translations: GameTranslations;
   verticalImageUrl: string;
   isPublished: boolean;
   sortOrder: number | null;
@@ -107,6 +118,9 @@ export type UpdateGameInput = {
   isPublished?: boolean;
   sortOrder?: number;
   characters?: GameCharacterInput[];
+  /** When false, edited setting/challenge/intro texts keep their existing
+   * translations (e.g. a typo fix). Defaults to true on the server. */
+  regenerateTranslations?: boolean;
 };
 
 export type PaginatedGames = {
