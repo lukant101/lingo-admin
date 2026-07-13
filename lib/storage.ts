@@ -139,7 +139,10 @@ export function buildLogoPath(
   return `studios/${firebaseUid}/${studioId}/studio_logo_${timestamp}.${ext}`;
 }
 
-export function adminVideoPath(uploadBasePath: string, filename: string): string {
+export function adminVideoPath(
+  uploadBasePath: string,
+  filename: string
+): string {
   const ext = filename.split(".").pop() ?? "mp4";
   return `${uploadBasePath}/video/${randomId()}.${ext}`;
 }
@@ -151,6 +154,23 @@ export function adminCoverImagePath(
 ): string {
   const ext = filename.split(".").pop() ?? "jpg";
   return `${uploadBasePath}/images/cover_${variant}_${randomId()}.${ext}`;
+}
+
+export function gameCoverImagePath(
+  uploadBasePath: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "jpg";
+  return `${uploadBasePath}/images/cover_vertical_${randomId()}.${ext}`;
+}
+
+export function gameCharacterImagePath(
+  uploadBasePath: string,
+  slug: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "jpg";
+  return `${uploadBasePath}/images/character_${slug}_${randomId()}.${ext}`;
 }
 
 export function adminCardAudioPath(
