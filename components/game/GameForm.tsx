@@ -68,6 +68,7 @@ export function GameForm({ gameId }: GameFormProps) {
   const [pendingCoverSourcePath, setPendingCoverSourcePath] = useState<
     string | null
   >(null);
+  const [regenerateTranslations, setRegenerateTranslations] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -208,10 +209,12 @@ export function GameForm({ gameId }: GameFormProps) {
           ? { verticalImageSourcePath: pendingCoverSourcePath }
           : {}),
         characters: characterInputs,
+        regenerateTranslations,
       });
       // Sync image URLs from the response: replaced images now live at new
       // CDN URLs, and resending the old URL on a later save would revert them.
       setPendingCoverSourcePath(null);
+      setRegenerateTranslations(true);
       setCharacters((prev) =>
         prev.map((c) => ({
           ...c,
@@ -278,6 +281,21 @@ export function GameForm({ gameId }: GameFormProps) {
       </View>
     );
   }
+
+  // Whether any text that feeds translations (setting, challenge, character
+  // intros) differs from the saved game — decides if the regenerate switch
+  // is shown.
+  const savedIntrosBySlug = new Map(
+    game.characters.map((c) => [c.slug, c.intro])
+  );
+  const translationsEdited =
+    fields.setting !== game.setting ||
+    fields.challenge !== game.challenge ||
+    characters.some((c) =>
+      savedIntrosBySlug.has(c.slug)
+        ? savedIntrosBySlug.get(c.slug) !== c.intro
+        : c.intro.trim().length > 0
+    );
 
   return (
     <View
@@ -426,6 +444,28 @@ export function GameForm({ gameId }: GameFormProps) {
           />
         ))}
 
+        {translationsEdited && (
+          <Card style={styles.regenerateCard}>
+            <View style={styles.switchRow}>
+              <View style={styles.regenerateLabel}>
+                <Text variant="bodyMedium">Regenerate translations</Text>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  The setting, challenge, or a character intro changed. Turn off
+                  to keep the existing translations, e.g. for a typo or
+                  punctuation fix.
+                </Text>
+              </View>
+              <Switch
+                value={regenerateTranslations}
+                onValueChange={setRegenerateTranslations}
+              />
+            </View>
+          </Card>
+        )}
+
         <Button
           title="Save changes"
           icon="content-save"
@@ -504,6 +544,14 @@ const styles = StyleSheet.create({
   },
   charactersHeader: {
     marginBottom: 12,
+    gap: 2,
+  },
+  regenerateCard: {
+    marginTop: 16,
+  },
+  regenerateLabel: {
+    flex: 1,
+    marginRight: 16,
     gap: 2,
   },
   saveButton: {
