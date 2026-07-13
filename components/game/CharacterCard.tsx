@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Chip, IconButton, Text, useTheme } from "react-native-paper";
 
+import { ExternalLink } from "@/components/ExternalLink";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -169,6 +170,11 @@ export function CharacterCard({
               onCommit();
             }}
           />
+          <ExternalLink href="https://docs.cloud.google.com/text-to-speech/docs/gemini-tts">
+            <Text variant="bodySmall" style={{ color: theme.colors.primary }}>
+              Preview voices in Google&apos;s Gemini TTS docs
+            </Text>
+          </ExternalLink>
           <Input
             label="System prompt (drives the character's behavior)"
             value={character.systemPrompt}
