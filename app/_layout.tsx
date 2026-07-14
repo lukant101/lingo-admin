@@ -26,7 +26,6 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/theme";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CreatorAccountProvider } from "@/contexts/CreatorAccountContext";
 import {
   ThemeProvider as AppThemeProvider,
   useThemeContext,
@@ -98,9 +97,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider>
           <AuthProvider>
-            <CreatorAccountProvider>
-              <RootLayoutNav />
-            </CreatorAccountProvider>
+            <RootLayoutNav />
           </AuthProvider>
         </AppThemeProvider>
       </QueryClientProvider>
@@ -142,49 +139,7 @@ function RootLayoutNav() {
             <Stack>
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="creator/application/index"
-                options={{
-                  title: "Creator Application",
-                  presentation: "modal",
-                }}
-              />
-              <Stack.Screen
-                name="creator/application/status"
-                options={{ title: "Application Status" }}
-              />
-              <Stack.Screen
-                name="monetization/index"
-                options={{ title: "Monetization" }}
-              />
-              <Stack.Screen
-                name="monetization/onboarding-refresh"
-                options={{ title: "Stripe Setup", presentation: "modal" }}
-              />
-              <Stack.Screen
-                name="studio/new"
-                options={{ title: "Create Studio" }}
-              />
-              <Stack.Screen
-                name="studio/[studioId]/edit"
-                options={{ title: "Edit Studio" }}
-              />
-              <Stack.Screen
-                name="studio/[studioId]/decks/[deckId]/edit"
-                options={{ title: "Edit Deck" }}
-              />
-              <Stack.Screen
-                name="studios/[studioId]"
-                options={{ title: "Studio" }}
-              />
-              <Stack.Screen
-                name="admin"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="terms/creators/[version]"
-                options={{ title: "Creator Agreement", headerShown: false }}
-              />
+              <Stack.Screen name="admin" options={{ headerShown: false }} />
               <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             </Stack>
           </View>

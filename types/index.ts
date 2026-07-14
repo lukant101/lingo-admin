@@ -5,7 +5,6 @@ export * from "./game";
 export * from "./langs";
 export * from "./payout";
 export * from "./platformDeck";
-export * from "./studio";
 export * from "./terms";
 export * from "./submission";
 export * from "./user";
