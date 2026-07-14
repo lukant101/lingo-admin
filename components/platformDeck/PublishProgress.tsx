@@ -72,7 +72,11 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     try {
       await deletePlatformDeckDraft(draftId);
       queryClient.invalidateQueries({ queryKey: ["platformDecks"] });
-      router.replace(`/platform-decks`);
+      if (draft?.collectionId) {
+        router.replace(`/admin/collections/${draft.collectionId}` as never);
+      } else {
+        router.replace(`/`);
+      }
     } catch (err) {
       setSnackbar({
         message: (err as Error).message || "Failed to delete draft",
@@ -117,9 +121,9 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
               style={styles.actionButton}
             />
             <Button
-              title="Back to drafts"
+              title="Back to collections"
               variant="secondary"
-              onPress={() => router.replace(`/platform-decks`)}
+              onPress={() => router.replace(`/`)}
               style={styles.actionButton}
             />
           </View>
