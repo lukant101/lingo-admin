@@ -44,6 +44,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="games"
+          options={{
+            title: "Games",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="gamepad-variant"
+                size={TAB_ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="studios"
           options={{
             title: "Studios",
@@ -57,38 +70,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="platform-decks"
-          options={{
-            title: "Platform Decks",
-            tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons
-                name="cards"
-                size={TAB_ICON_SIZE}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="video-projects"
           options={{
             title: "Videos",
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="movie-open"
-                size={TAB_ICON_SIZE}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="games"
-          options={{
-            title: "Games",
-            tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons
-                name="gamepad-variant"
                 size={TAB_ICON_SIZE}
                 color={color}
               />
