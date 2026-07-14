@@ -24,6 +24,7 @@ export async function getGameDraft(
 
 export type ListGameDraftsQuery = {
   status?: GameDraftStatus;
+  langVariantCode?: string;
   page?: number;
   pageSize?: number;
 };
@@ -33,6 +34,7 @@ export async function listGameDrafts(
 ): Promise<PaginatedGameDrafts> {
   const params: Record<string, string> = {};
   if (query.status) params.status = query.status;
+  if (query.langVariantCode) params.langVariantCode = query.langVariantCode;
   if (query.page != null) params.page = String(query.page);
   if (query.pageSize != null) params.pageSize = String(query.pageSize);
   return apiGet<PaginatedGameDrafts>(

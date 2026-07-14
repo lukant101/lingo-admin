@@ -5,7 +5,9 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Chip, Text, useTheme } from "react-native-paper";
 
+import LanguageSearch from "@/components/LanguageSearch";
 import { Button } from "@/components/ui/Button";
+import { useSelectedLanguage } from "@/hooks/useSelectedLanguage";
 import { Card } from "@/components/ui/Card";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Select } from "@/components/ui/Select";
@@ -39,12 +41,15 @@ const LEVEL_FILTER_OPTIONS = [
 export default function GamesLandingScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { lang, setLang } = useSelectedLanguage();
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
 
   const draftsQuery = useQuery({
-    queryKey: ["gameDrafts", "all"],
-    queryFn: () => listGameDrafts({ pageSize: 50 }),
+    queryKey: ["gameDrafts", "byLang", lang?.code],
+    queryFn: () =>
+      listGameDrafts({ langVariantCode: lang!.code, pageSize: 50 }),
+    enabled: !!lang,
     refetchInterval: (q) =>
       q.state.data?.data.some((d) => d.status === "processing_started")
         ? DRAFTS_POLL_MS
@@ -52,16 +57,18 @@ export default function GamesLandingScreen() {
   });
 
   const gamesQuery = useQuery({
-    queryKey: ["adminGames", page, levelFilter],
+    queryKey: ["adminGames", lang?.code, page, levelFilter],
     queryFn: () =>
       listGames({
+        langVariantCode: lang!.code,
         page,
         pageSize: PAGE_SIZE,
         level: levelFilter === "all" ? undefined : (levelFilter as DeckLevel),
       }),
+    enabled: !!lang,
   });
 
-  if (draftsQuery.isLoading && gamesQuery.isLoading) {
+  if (!lang || (draftsQuery.isLoading && gamesQuery.isLoading)) {
     return <LoadingSpinner message="Loading games..." />;
   }
 
@@ -86,6 +93,8 @@ export default function GamesLandingScreen() {
           icon="plus"
         />
       </View>
+
+      <LanguageSearch value={lang} onSelect={setLang} />
 
       {(draftsQuery.error || gamesQuery.error) && (
         <Card>
@@ -127,7 +136,7 @@ export default function GamesLandingScreen() {
             variant="bodySmall"
             style={{ color: theme.colors.onSurfaceVariant }}
           >
-            No games yet. Create one to get started.
+            No games for {lang.name} yet. Create one to get started.
           </Text>
         </Card>
       ) : (
