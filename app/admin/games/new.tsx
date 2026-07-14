@@ -7,6 +7,10 @@ import { Text, useTheme } from "react-native-paper";
 
 import LanguageSearch from "@/components/LanguageSearch";
 import { Button } from "@/components/ui/Button";
+import {
+  useSelectedLanguage,
+  type LanguageSelection,
+} from "@/hooks/useSelectedLanguage";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -27,12 +31,18 @@ export default function NewGameScreen() {
   const theme = useTheme();
   const queryClient = useQueryClient();
 
+  const { lang: sharedLang } = useSelectedLanguage();
+
   const [title, setTitle] = useState("");
-  const [lang, setLang] = useState<{ code: string; name: string } | undefined>(
-    undefined
-  );
+  const [langOverride, setLangOverride] = useState<
+    LanguageSelection | undefined
+  >(undefined);
   const [level, setLevel] = useState<DeckLevel>(DECK_LEVELS[0]);
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+
+  // Default to the language selected on the Games tab; picking a different
+  // one here only affects this draft.
+  const lang = langOverride ?? sharedLang ?? undefined;
 
   const createMutation = useMutation({
     mutationFn: createGameDraft,
@@ -81,7 +91,7 @@ export default function NewGameScreen() {
             maxLength={300}
           />
 
-          <LanguageSearch onSelect={setLang} value={lang} />
+          <LanguageSearch onSelect={setLangOverride} value={lang} />
 
           <Select
             label="Level"
