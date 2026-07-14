@@ -59,7 +59,8 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
   const primaryCollectionId = draft?.collectionId;
   const { data: primaryCollection } = useQuery({
     queryKey: ["collection", primaryCollectionId],
-    queryFn: (): Promise<CollectionResponse> => getCollection(draft!.collectionId),
+    queryFn: (): Promise<CollectionResponse> =>
+      getCollection(draft!.collectionId),
     enabled: !!draft && draft.status === "processing_completed",
   });
 
@@ -71,7 +72,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
     try {
       await deletePlatformDeckDraft(draftId);
       queryClient.invalidateQueries({ queryKey: ["platformDecks"] });
-      router.replace(`/admin/platform-decks`);
+      router.replace(`/platform-decks`);
     } catch (err) {
       setSnackbar({
         message: (err as Error).message || "Failed to delete draft",
@@ -118,7 +119,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
             <Button
               title="Back to drafts"
               variant="secondary"
-              onPress={() => router.replace(`/admin/platform-decks`)}
+              onPress={() => router.replace(`/platform-decks`)}
               style={styles.actionButton}
             />
           </View>
@@ -151,7 +152,10 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
           <View
             style={[
               styles.banner,
-              { backgroundColor: theme.colors.errorContainer, marginBottom: 12 },
+              {
+                backgroundColor: theme.colors.errorContainer,
+                marginBottom: 12,
+              },
             ]}
           >
             <MaterialCommunityIcons
@@ -331,10 +335,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
         />
       )}
 
-      <StyledSnackbar
-        snackbar={snackbar}
-        onDismiss={() => setSnackbar(null)}
-      />
+      <StyledSnackbar snackbar={snackbar} onDismiss={() => setSnackbar(null)} />
     </ScrollView>
   );
 }
