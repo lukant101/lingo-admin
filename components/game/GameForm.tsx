@@ -202,7 +202,7 @@ export function GameForm({ gameId }: GameFormProps) {
     try {
       await deleteGame(gameId);
       queryClient.invalidateQueries({ queryKey: ["adminGames"] });
-      router.replace("/admin/games");
+      router.replace("/games");
     } catch (err) {
       setDeleting(false);
       setDeleteDialogVisible(false);

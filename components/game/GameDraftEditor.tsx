@@ -251,7 +251,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
     try {
       await deleteGameDraft(draftId);
       queryClient.invalidateQueries({ queryKey: ["gameDrafts"] });
-      router.replace("/admin/games");
+      router.replace("/games");
     } catch (err) {
       setDeleting(false);
       setDeleteDialogVisible(false);
@@ -341,7 +341,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
             <Button
               title="Back to games"
               variant="outline"
-              onPress={() => router.replace("/admin/games")}
+              onPress={() => router.replace("/games")}
               style={styles.topSpacing}
             />
           </Card>
