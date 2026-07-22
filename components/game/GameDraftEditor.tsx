@@ -47,7 +47,6 @@ type DraftFields = {
   setting: string;
   challenge: string;
   accomplishment: string;
-  systemPrompt: string;
   forKids: boolean;
   sortOrderText: string;
 };
@@ -103,7 +102,6 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
       setting: draft.setting,
       challenge: draft.challenge,
       accomplishment: draft.accomplishment,
-      systemPrompt: draft.systemPrompt,
       forKids: draft.forKids,
       sortOrderText: draft.sortOrder != null ? String(draft.sortOrder) : "",
     });
@@ -148,9 +146,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
     void patchDraft({ title: trimmed });
   };
 
-  const commitText = (
-    key: "setting" | "challenge" | "accomplishment" | "systemPrompt"
-  ) => {
+  const commitText = (key: "setting" | "challenge" | "accomplishment") => {
     if (!fields || !draft) return;
     if (fields[key] === draft[key]) return;
     void patchDraft({ [key]: fields[key] });
@@ -201,7 +197,6 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
     if (!fields.setting.trim()) return "Setting is required";
     if (!fields.challenge.trim()) return "Challenge is required";
     if (!fields.accomplishment.trim()) return "Accomplishment is required";
-    if (!fields.systemPrompt.trim()) return "Shared instructions are required";
     if (!draft.verticalImageSourcePath) return "Cover image is required";
     if (characters.length === 0) return "Add at least one character";
     const slugs = new Set<string>();
@@ -229,7 +224,6 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
         setting: fields.setting,
         challenge: fields.challenge,
         accomplishment: fields.accomplishment,
-        systemPrompt: fields.systemPrompt,
         forKids: fields.forKids,
         characters,
       });
@@ -441,16 +435,6 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
                 multiline
                 numberOfLines={3}
                 maxLength={2000}
-                editable={editable}
-              />
-              <Input
-                label="Shared instructions (apply to every character in this game)"
-                value={fields.systemPrompt}
-                onChangeText={(text) => setField("systemPrompt", text)}
-                onBlur={() => commitText("systemPrompt")}
-                multiline
-                numberOfLines={8}
-                maxLength={20000}
                 editable={editable}
               />
               <View style={styles.switchRow}>

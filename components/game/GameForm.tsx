@@ -46,7 +46,6 @@ type GameFields = {
   setting: string;
   challenge: string;
   accomplishment: string;
-  systemPrompt: string;
   forKids: boolean;
   isPublished: boolean;
   sortOrderText: string;
@@ -92,7 +91,6 @@ export function GameForm({ gameId }: GameFormProps) {
       setting: game.setting,
       challenge: game.challenge,
       accomplishment: game.accomplishment,
-      systemPrompt: game.systemPrompt,
       forKids: game.forKids,
       isPublished: game.isPublished,
       sortOrderText: game.sortOrder != null ? String(game.sortOrder) : "",
@@ -154,7 +152,6 @@ export function GameForm({ gameId }: GameFormProps) {
     if (!fields.setting.trim()) return "Setting is required";
     if (!fields.challenge.trim()) return "Challenge is required";
     if (!fields.accomplishment.trim()) return "Accomplishment is required";
-    if (!fields.systemPrompt.trim()) return "Shared instructions are required";
     if (characters.length === 0) return "At least one character is required";
     const slugs = new Set<string>();
     for (const c of characters) {
@@ -206,7 +203,6 @@ export function GameForm({ gameId }: GameFormProps) {
         setting: fields.setting,
         challenge: fields.challenge,
         accomplishment: fields.accomplishment,
-        systemPrompt: fields.systemPrompt,
         forKids: fields.forKids,
         isPublished: fields.isPublished,
         ...(sortOrder !== undefined ? { sortOrder } : {}),
@@ -361,14 +357,6 @@ export function GameForm({ gameId }: GameFormProps) {
             multiline
             numberOfLines={3}
             maxLength={2000}
-          />
-          <Input
-            label="Shared instructions (apply to every character in this game)"
-            value={fields.systemPrompt}
-            onChangeText={(text) => setField("systemPrompt", text)}
-            multiline
-            numberOfLines={8}
-            maxLength={20000}
           />
           <View style={styles.switchRow}>
             <Text variant="bodyMedium">For kids</Text>
