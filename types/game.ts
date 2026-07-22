@@ -79,6 +79,8 @@ export type AdminGame = {
   setting: string;
   challenge: string;
   accomplishment: string;
+  /** Instructions shared by every character in the game. */
+  systemPrompt: string;
   translations: GameTranslations;
   verticalImageUrl: string;
   isPublished: boolean;
@@ -110,6 +112,7 @@ export type UpdateGameInput = {
   setting?: string;
   challenge?: string;
   accomplishment?: string;
+  systemPrompt?: string;
   verticalImageUrl?: string;
   /** Mates-bucket path of a newly uploaded cover image; the API copies it to
    * the CDN and overwrites verticalImageUrl. */
@@ -170,6 +173,8 @@ export type GameDraftResponse = {
   setting: string;
   challenge: string;
   accomplishment: string;
+  /** Instructions shared by every character in the game. */
+  systemPrompt: string;
   sortOrder: number | null;
   verticalImageSourcePath: string | null;
   characters: GameDraftCharacter[];
@@ -190,6 +195,7 @@ export type UpdateGameDraftInput = {
   setting?: string;
   challenge?: string;
   accomplishment?: string;
+  systemPrompt?: string;
   forKids?: boolean;
   sortOrder?: number;
   verticalImageSourcePath?: string;
