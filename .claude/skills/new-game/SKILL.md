@@ -1,6 +1,6 @@
 ---
 name: new-game
-description: Author content for a Lingohouse conversation game — setting, challenge, accomplishment, per-character system prompts, and image prompts for the admin game creation wizard. Use when creating a new game scenario, revising an existing one, or turning a rough story idea into wizard-ready fields.
+description: Author content for a Lingo House conversation game — setting, challenge, accomplishment, per-character system prompts, and image prompts for the admin game creation wizard. Use when creating a new game scenario, revising an existing one, or turning a rough story idea into wizard-ready fields.
 ---
 
 # Authoring a conversation game
