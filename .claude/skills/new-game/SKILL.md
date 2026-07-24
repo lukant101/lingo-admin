@@ -53,17 +53,63 @@ Length — keep all three short. Detail belongs in the character prompts, not he
 - Challenge: what the learner must accomplish. One or two sentences, the bare goal — it is
   injected into every character's prompt, so keep it tight.
 - Accomplishment: past-tense summary for the celebration screen. One sentence.
-- Character intro: shown when the learner first meets the character. Say **what the learner
-  needs to do in this scene**, not what the character looks like — the portrait already
-  shows that. Name the character's role (flower seller, newspaper vendor) only when it
-  bears on the task. One or two sentences, second person. For a scene whose point is a
-  question ("is this the right person?"), pose it and prompt the action that answers it,
-  without giving away the answer.
+- Character intro: shown when the learner first meets the character. State **that scene's
+  single task** (§3), not what the character looks like — the portrait already shows that.
+  Name the character's role (flower seller, newspaper vendor) only when it bears on the
+  task. One or two sentences, second person; if it takes more than that to explain what to
+  do, the scene has more than one task. For a scene whose point is a question ("is this the
+  right person?"), pose it and prompt the action that answers it, without giving away the
+  answer.
 
 Slugs are `^[a-z0-9_]+$`. Voices come from `GEMINI_VOICES` in `types/game.ts` — pick by
 the listed style, and give characters in the same scene distinct voices.
 
-## 3. Character prompt shape
+## 3. One task per scene
+
+**This is the rule the whole design hangs on. Settle each scene's task before writing a
+line of prompt.**
+
+A game is a chain of scenes, one scene per character, in array order. The learner meets
+character 0; each character hands the learner to the next; the last calls
+`complete_challenge`. The challenge is the sum of the scene tasks.
+
+**Every scene has exactly one task, and completing it is what ends the scene.** Nothing
+else advances the game. Name that task out loud while designing — one plain sentence — and
+write everything else in the scene around it.
+
+The task is almost always an act of communication. It is one of:
+
+- get one piece of information **out of** the character — where the market is, when the
+  train leaves, whether they saw the man in the grey coat;
+- get one piece of information **across to** the character — who sent you, that you are
+  the new lodger, that the delivery is late and why;
+- carry out **one transaction**, which is a single act of communication even when it has
+  details: "buy two scoops of vanilla ice cream" is one order, not three facts.
+
+Two tests, both cheap:
+
+- The learner could say what they did in **one sentence**.
+- After hearing the intro once, the learner could **say the task back**. If the intro needs
+  more than a sentence or two, the scene is carrying more than one task.
+
+If the condition that fires the hand-off needs an "and", it is two tasks.
+
+**Sub-tasks are allowed but should be avoided.** A scene will naturally contain a greeting,
+some small talk, a clarifying question — that is fine. What is not fine is letting any of
+it become a second requirement for progressing. Only the one identified task may fire
+`hand_off` (or `complete_challenge` in the last scene).
+
+**Overflow.** When a scene idea arrives with a second requirement, first try to cut it, or
+demote it to flavour the character does not gate on. Split it into a scene of its own only
+when it genuinely carries the story forward — every extra scene costs a character, a voice,
+and an image.
+
+**The task must be checkable** from what the learner said, as a condition the model can
+evaluate: "has bought a flower", "has explained the errand in their own words", "has asked
+which platform the train leaves from". Not "has been polite enough" or "understands the
+situation".
+
+## 4. Character prompt shape
 
 Second-person roleplay, then a `Behavior:` bullet list. State tool rules explicitly,
 including the negatives — non-final characters get "Never call complete_challenge", the
@@ -76,18 +122,19 @@ You are <name>, <age/role>, <where they are>. <Motivation, and what they are hid
 
 Behavior:
 - <How they respond to the learner's opening.>
-- <The gate: what the learner must actually say or do.>
-- <Failure branch: what they do when the learner hasn't met the gate yet.>
-- Once <gate is met>, <spoken action>, and call the hand_off function with targetCharacterSlug "<next_slug>".
+- <The single progressing task (§3): what the learner must actually say or do.>
+- <Failure branch: what they do when the learner hasn't done it yet.>
+- Once <the task is done>, <spoken action>, and call the hand_off function with targetCharacterSlug "<next_slug>".
 - Never call complete_challenge.
 ```
 
-The final character calls `complete_challenge` in place of the hand-off.
+The hand-off line fires on that one condition and nothing else — no "and also", no second
+thing the learner has to have mentioned. The final character calls `complete_challenge` in
+place of the hand-off.
 
-## 4. Design checklist
+## 5. Design checklist
 
-- **One gate per scene, stated as a condition the model can check** from what the learner
-  said. "Has bought a flower", "has given a plausible name and explained the errand".
+- **One task per scene** — see §3. Check each scene against it before going further.
 - **Every character is told the setting verbatim, so all of them know the whole premise.**
   If a gate requires the learner to explain something the setting already states, the
   character can hand it over unprompted and the scene collapses. Give each such character
@@ -116,10 +163,11 @@ The final character calls `complete_challenge` in place of the hand-off.
 - **Check period and cultural detail.** Real places, plausible prices, and — for anything
   symbolic — the convention in the _target_ culture, which often differs from English
   (a yellow rose means friendship in English and infidelity in French).
-- **Match the level.** At A2 keep the gate to a single transaction; at B1+ the learner can
-  be asked to explain, justify, or narrate a mishap.
+- **Match the level.** The scene still has one task at every level; what changes is how much
+  language it takes. At A2 make it a single transaction; at B1+ the one task can be to
+  explain, justify, or narrate a mishap.
 
-## 5. Images
+## 6. Images
 
 All images are **9:16 vertical** — cover and character portraits alike. The mob app
 renders the character image as a full-screen background (`contentFit="cover"`), so frame
@@ -173,19 +221,30 @@ told to buy something they cannot see. Where the plot turns on something being _
 say so in the prompt ("no pink and no white carnations anywhere") so the learner can see
 the constraint rather than just being refused.
 
-## 6. Ask before writing
+## 7. Ask before writing
 
 Content choices are the user's. Use AskUserQuestion for anything the story turns on —
 the symbolic object, which character reveals what, how a near-miss differs from the real
 thing — and offer a recommendation with the reasoning. Verify factual claims about real
 places and customs rather than inventing them.
 
-## 7. Deliver
+## 8. Deliver
 
 A copy-paste sheet in wizard order: title/language/level, then setting, challenge,
 accomplishment, then per character name, slug, voice, intro, system prompt — then the
 image prompts. Fenced blocks per field so each can be copied whole.
 
-Finish with the gates as a testable list, so the user can play through and check each
-one fires: which utterance should trigger each hand-off, what should _fail_ to complete
-the challenge, and what should complete it.
+Open each character's block with a one-line
+
+```
+Task: <the one thing the learner must do in this scene, in plain English>
+```
+
+written **outside** the fenced field blocks and labelled as author-facing — it is not a
+wizard field, it is there so a mismatch between the task, the intro, and the system prompt
+is visible at a glance.
+
+Finish with those tasks as a testable list, one line per scene matching the `Task:` lines
+above, so the user can play through and check each one fires: which utterance should
+trigger each hand-off, what should _fail_ to complete the challenge, and what should
+complete it.
