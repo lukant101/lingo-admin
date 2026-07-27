@@ -30,6 +30,23 @@ type GameImageUploadFieldProps = {
   disabled?: boolean;
 };
 
+// The picker's crop UI is native-only, so on web a mismatched image is silently
+// centre-cropped by resizeForCover. Flag anything materially off-ratio so an
+// accidentally square portrait doesn't sail through unnoticed.
+const RATIO_TOLERANCE = 0.05;
+
+function ratioWarning(
+  width: number | undefined,
+  height: number | undefined,
+  aspectRatio: [number, number]
+): string | null {
+  if (!width || !height) return null;
+  const target = aspectRatio[0] / aspectRatio[1];
+  if (Math.abs(width / height - target) / target <= RATIO_TOLERANCE)
+    return null;
+  return `Image is ${width}×${height}; it will be centre-cropped to ${aspectRatio[0]}:${aspectRatio[1]}.`;
+}
+
 export function GameImageUploadField({
   label,
   aspectRatio,
@@ -44,6 +61,7 @@ export function GameImageUploadField({
   const theme = useTheme();
   const [media, setMedia] = useState<MediaUpload | null>(null);
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +82,7 @@ export function GameImageUploadField({
   }, [existingPath]);
 
   const pickAndUpload = async () => {
+    setWarning(null);
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -89,6 +108,8 @@ export function GameImageUploadField({
       });
       return;
     }
+
+    setWarning(ratioWarning(asset.width, asset.height, aspectRatio));
 
     let uploadUri = asset.uri;
     let contentType = asset.mimeType ?? "image/jpeg";
@@ -166,6 +187,7 @@ export function GameImageUploadField({
   const handleRemove = async () => {
     setMedia(null);
     setResolvedUrl(null);
+    setWarning(null);
     await onRemove();
   };
 
@@ -229,6 +251,15 @@ export function GameImageUploadField({
       {media?.error && (
         <Text variant="bodySmall" style={{ color: theme.colors.error }}>
           {media.error}
+        </Text>
+      )}
+
+      {warning && !media?.error && (
+        <Text
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          {warning}
         </Text>
       )}
     </View>
