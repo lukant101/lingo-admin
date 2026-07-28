@@ -308,15 +308,16 @@ export function GameForm({ gameId }: GameFormProps) {
     );
   }
 
-  // Whether any text that feeds translations (setting, challenge, character
-  // intros) differs from the saved game — decides if the regenerate switch
-  // is shown.
+  // Whether any text that feeds translations (setting, challenge,
+  // accomplishment, character intros) differs from the saved game — decides if
+  // the regenerate switch is shown.
   const savedIntrosBySlug = new Map(
     game.characters.map((c) => [c.slug, c.intro])
   );
   const translationsEdited =
     fields.setting !== game.setting ||
     fields.challenge !== game.challenge ||
+    fields.accomplishment !== game.accomplishment ||
     characters.some((c) =>
       savedIntrosBySlug.has(c.slug)
         ? savedIntrosBySlug.get(c.slug) !== c.intro
