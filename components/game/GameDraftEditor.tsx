@@ -49,6 +49,7 @@ type DraftFields = {
   accomplishment: string;
   forKids: boolean;
   sortOrderText: string;
+  contentVersionText: string;
 };
 
 const LEVEL_OPTIONS = DECK_LEVELS.map((level) => ({
@@ -104,6 +105,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
       accomplishment: draft.accomplishment,
       forKids: draft.forKids,
       sortOrderText: draft.sortOrder != null ? String(draft.sortOrder) : "",
+      contentVersionText: String(draft.contentVersion),
     });
     setCharacters(draft.characters);
   }, [draft, fields]);
@@ -168,6 +170,31 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
     void patchDraft({ sortOrder: parsed });
   };
 
+  // `undefined` when the field is blank, `"invalid"` when it is not a version
+  // number — both leave the stored value untouched.
+  const readContentVersion = (): number | "invalid" | undefined => {
+    const trimmed = fields?.contentVersionText.trim();
+    if (!trimmed) return undefined;
+    const parsed = Number(trimmed);
+    if (!Number.isInteger(parsed) || parsed < 1) return "invalid";
+    return parsed;
+  };
+
+  const commitContentVersion = () => {
+    if (!fields || !draft) return;
+    const parsed = readContentVersion();
+    if (parsed === undefined) return;
+    if (parsed === "invalid") {
+      setSnackbar({
+        message: "Content version must be a whole number of at least 1",
+        type: "error",
+      });
+      return;
+    }
+    if (parsed === draft.contentVersion) return;
+    void patchDraft({ contentVersion: parsed });
+  };
+
   const commitCharacters = (next: GameDraftCharacter[]) => {
     setCharacters(next);
     void patchDraft({ characters: next });
@@ -215,6 +242,14 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
 
   const handlePublish = async () => {
     if (!fields) return;
+    const contentVersion = readContentVersion();
+    if (contentVersion === "invalid") {
+      setSnackbar({
+        message: "Content version must be a whole number of at least 1",
+        type: "error",
+      });
+      return;
+    }
     setPublishing(true);
     try {
       // Commit any in-progress edits before validating and publishing.
@@ -225,6 +260,7 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
         challenge: fields.challenge,
         accomplishment: fields.accomplishment,
         forKids: fields.forKids,
+        ...(contentVersion !== undefined ? { contentVersion } : {}),
         characters,
       });
       if (!saved) return;
@@ -453,6 +489,14 @@ export function GameDraftEditor({ draftId }: GameDraftEditorProps) {
                 value={fields.sortOrderText}
                 onChangeText={(text) => setField("sortOrderText", text)}
                 onBlur={commitSortOrder}
+                keyboardType="numeric"
+                editable={editable}
+              />
+              <Input
+                label="Content version"
+                value={fields.contentVersionText}
+                onChangeText={(text) => setField("contentVersionText", text)}
+                onBlur={commitContentVersion}
                 keyboardType="numeric"
                 editable={editable}
               />
