@@ -53,6 +53,7 @@ type GameFields = {
   forKids: boolean;
   isPublished: boolean;
   sortOrderText: string;
+  contentVersionText: string;
 };
 
 const LEVEL_OPTIONS = DECK_LEVELS.map((level) => ({
@@ -98,6 +99,8 @@ export function GameForm({ gameId }: GameFormProps) {
       forKids: game.forKids,
       isPublished: game.isPublished,
       sortOrderText: game.sortOrder != null ? String(game.sortOrder) : "",
+      contentVersionText:
+        game.contentVersion != null ? String(game.contentVersion) : "",
     });
     setCharacters(
       game.characters.map((c) => ({
@@ -190,6 +193,21 @@ export function GameForm({ gameId }: GameFormProps) {
       return;
     }
 
+    const contentVersionTrimmed = fields.contentVersionText.trim();
+    const contentVersion = contentVersionTrimmed
+      ? Number(contentVersionTrimmed)
+      : undefined;
+    if (
+      contentVersion !== undefined &&
+      (!Number.isInteger(contentVersion) || contentVersion < 1)
+    ) {
+      setSnackbar({
+        message: "Content version must be a whole number of at least 1",
+        type: "error",
+      });
+      return;
+    }
+
     const characterInputs: GameCharacterInput[] = characters.map((c, idx) => ({
       slug: c.slug,
       name: c.name,
@@ -212,6 +230,7 @@ export function GameForm({ gameId }: GameFormProps) {
         forKids: fields.forKids,
         isPublished: fields.isPublished,
         ...(sortOrder !== undefined ? { sortOrder } : {}),
+        ...(contentVersion !== undefined ? { contentVersion } : {}),
         ...(pendingCoverSourcePath
           ? { verticalImageSourcePath: pendingCoverSourcePath }
           : {}),
@@ -289,15 +308,16 @@ export function GameForm({ gameId }: GameFormProps) {
     );
   }
 
-  // Whether any text that feeds translations (setting, challenge, character
-  // intros) differs from the saved game — decides if the regenerate switch
-  // is shown.
+  // Whether any text that feeds translations (setting, challenge,
+  // accomplishment, character intros) differs from the saved game — decides if
+  // the regenerate switch is shown.
   const savedIntrosBySlug = new Map(
     game.characters.map((c) => [c.slug, c.intro])
   );
   const translationsEdited =
     fields.setting !== game.setting ||
     fields.challenge !== game.challenge ||
+    fields.accomplishment !== game.accomplishment ||
     characters.some((c) =>
       savedIntrosBySlug.has(c.slug)
         ? savedIntrosBySlug.get(c.slug) !== c.intro
@@ -384,6 +404,12 @@ export function GameForm({ gameId }: GameFormProps) {
             onChangeText={(text) => setField("sortOrderText", text)}
             keyboardType="numeric"
           />
+          <Input
+            label="Content version"
+            value={fields.contentVersionText}
+            onChangeText={(text) => setField("contentVersionText", text)}
+            keyboardType="numeric"
+          />
           {uploadBasePath && (
             <GameImageUploadField
               label="Cover image (vertical)"
@@ -421,8 +447,8 @@ export function GameForm({ gameId }: GameFormProps) {
               uploadBasePath ? (
                 <GameImageUploadField
                   label="Character image"
-                  aspectRatio={[1, 1]}
-                  resizeVariant="square"
+                  aspectRatio={[9, 16]}
+                  resizeVariant="vertical"
                   existingPath={character.imageSourcePath}
                   existingUrl={character.imageUrl}
                   buildGcsPath={(filename) =>

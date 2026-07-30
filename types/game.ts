@@ -83,6 +83,9 @@ export type AdminGame = {
   verticalImageUrl: string;
   isPublished: boolean;
   sortOrder: number | null;
+  /** Version of the authoring games.db content this row was last pushed from;
+   * null for rows created before content versioning existed. */
+  contentVersion: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -117,6 +120,7 @@ export type UpdateGameInput = {
   forKids?: boolean;
   isPublished?: boolean;
   sortOrder?: number;
+  contentVersion?: number;
   characters?: GameCharacterInput[];
   /** When false, edited setting/challenge/intro texts keep their existing
    * translations (e.g. a typo fix). Defaults to true on the server. */
@@ -171,6 +175,9 @@ export type GameDraftResponse = {
   challenge: string;
   accomplishment: string;
   sortOrder: number | null;
+  /** Version of the authoring games.db content this draft represents; copied
+   * onto the game at publish. Defaults to 1 server-side. */
+  contentVersion: number;
   verticalImageSourcePath: string | null;
   characters: GameDraftCharacter[];
   gameId: string | null;
@@ -192,6 +199,7 @@ export type UpdateGameDraftInput = {
   accomplishment?: string;
   forKids?: boolean;
   sortOrder?: number;
+  contentVersion?: number;
   verticalImageSourcePath?: string;
   characters?: GameDraftCharacter[];
 };
