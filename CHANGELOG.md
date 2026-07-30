@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A "Content version" field in the game draft editor (pre-filled with 1) and in the published
   game editor, so the version of the authoring `games.db` content a game came from can be set
   while authoring and corrected later
+- A warning when an uploaded game image is materially off-ratio, since on web the image is
+  silently centre-cropped instead of offering the native crop UI
+
+### Changed
+
+- Game character images are now vertical (9:16) instead of square, matching the game cover
+  image
+- Editing a game's accomplishment now offers to regenerate translations, as editing the
+  setting, challenge, or character intros already did
 
 ## [0.2.0] - 2026-07-23
 
