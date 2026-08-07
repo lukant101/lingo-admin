@@ -330,10 +330,10 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
           )}
         </Card>
 
-        {/* A deck carries either a video or an audio clip, never both, so the
-            audio field is hidden for decks that have a video. Video itself
-            can't be changed here — it has to go back through the transcoder. */}
-        {uploadBasePath && !deck.hasVideo && (
+        {/* Deck audio and video are independent — a deck can have either, both
+            or neither, so this field shows for every deck. Video itself can't
+            be changed here — it has to go back through the transcoder. */}
+        {uploadBasePath && (
           <Card style={styles.card}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Audio

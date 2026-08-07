@@ -23,7 +23,7 @@
 - audio support: (no transcoding) m4a and mp4 (AAC), mp3, wav
 - image support: webp (preferred), jpeg/jpg, png
 
-A platform deck carries either a video or a long audio clip (up to 5 minutes) — exactly one, never both. Card audio is a separate, short clip.
+A platform deck can carry a video, a long audio clip (up to 5 minutes), both, or neither — the two are independent. Card audio is a separate, short clip.
 
 Note: mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
 
@@ -70,4 +70,4 @@ Bash command for changing extension `mp4` to `m4a` for all files in current dire
 $ for f in *.mp4; do mv -n "$f" "${f%.mp4}.m4a"; done
 ```
 
-for f in *.m4a; do mv -n "$f" "${f%.m4a}.mp4"; done
+for f in \*.m4a; do mv -n "$f" "${f%.m4a}.mp4"; done

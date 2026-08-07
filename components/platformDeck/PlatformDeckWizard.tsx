@@ -63,16 +63,13 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { SegmentedButtons, Text, useTheme } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 
 // Step 1 = Collection (set by /new screen, always complete in the wizard)
 type WizardStep = 2 | 3 | 4 | 5;
 
 const STEP_LABELS = ["Collection", "Media", "Images", "Cards", "Publish"];
 const MAX_CARD_TEXT = 1000;
-
-// A platform deck carries either a video or a long audio clip — never both.
-type MediaKind = "video" | "audio";
 
 type PlatformDeckWizardProps = {
   draftId: string;
@@ -85,7 +82,6 @@ type EditState = {
   coverVertical: MediaUpload | null;
   video: MediaUpload | null;
   deckAudio: MediaUpload | null;
-  mediaKind: MediaKind;
   isSaving: boolean;
   isPublishing: boolean;
   activeCardForRecording: number | null;
@@ -103,7 +99,6 @@ type EditAction =
   | { type: "SET_COVER_VERTICAL"; media: MediaUpload | null }
   | { type: "SET_VIDEO"; media: MediaUpload | null }
   | { type: "SET_DECK_AUDIO"; media: MediaUpload | null }
-  | { type: "SET_MEDIA_KIND"; kind: MediaKind }
   | { type: "SET_SAVING"; isSaving: boolean }
   | { type: "SET_PUBLISHING"; isPublishing: boolean }
   | { type: "SET_ACTIVE_CARD_FOR_RECORDING"; index: number | null }
@@ -156,8 +151,6 @@ function editReducer(state: EditState, action: EditAction): EditState {
       return { ...state, video: action.media, error: null };
     case "SET_DECK_AUDIO":
       return { ...state, deckAudio: action.media, error: null };
-    case "SET_MEDIA_KIND":
-      return { ...state, mediaKind: action.kind, error: null };
     case "SET_SAVING":
       return { ...state, isSaving: action.isSaving };
     case "SET_PUBLISHING":
@@ -183,7 +176,6 @@ function createInitialState(): EditState {
     coverVertical: null,
     video: null,
     deckAudio: null,
-    mediaKind: "video",
     isSaving: false,
     isPublishing: false,
     activeCardForRecording: null,
@@ -301,7 +293,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           isUploading: false,
           error: null,
         };
-        patch.mediaKind = "audio";
       }
       if (draft.horizontalImageSourcePath) {
         const uri = await getFileDownloadURL(
@@ -888,9 +879,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           error: null,
         },
       });
-      // A deck carries either a video or audio — never both.
-      await patchDraft({ videoSourcePath: gcsPath, audioSourcePath: null });
-      dispatch({ type: "SET_DECK_AUDIO", media: null });
+      await patchDraft({ videoSourcePath: gcsPath });
     } catch {
       dispatch({
         type: "SET_VIDEO",
@@ -1012,9 +1001,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
           error: null,
         },
       });
-      // A deck carries either a video or audio — never both.
-      await patchDraft({ audioSourcePath: gcsPath, videoSourcePath: null });
-      dispatch({ type: "SET_VIDEO", media: null });
+      await patchDraft({ audioSourcePath: gcsPath });
     } catch {
       dispatch({
         type: "SET_DECK_AUDIO",
@@ -1242,48 +1229,31 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                 marginBottom: 12,
               }}
             >
-              Add either a video or an audio clip — not both.
+              Add a video, an audio clip, or both.
             </Text>
-            <SegmentedButtons
-              value={state.mediaKind}
-              onValueChange={(value) =>
-                dispatch({ type: "SET_MEDIA_KIND", kind: value as MediaKind })
-              }
-              buttons={[
-                { value: "video", label: "Video", icon: "video" },
-                { value: "audio", label: "Audio", icon: "music-note" },
-              ]}
-              style={styles.mediaToggle}
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              Video — 9:16 vertical, 10 seconds to 5 minutes long
+            </Text>
+            <VideoPickerField
+              media={state.video}
+              onVideoPicked={uploadVideo}
+              onRemove={handleRemoveVideo}
             />
-            {state.mediaKind === "video" ? (
-              <>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: theme.colors.onSurfaceVariant }}
-                >
-                  9:16 vertical, 10 seconds to 5 minutes long
-                </Text>
-                <VideoPickerField
-                  media={state.video}
-                  onVideoPicked={uploadVideo}
-                  onRemove={handleRemoveVideo}
-                />
-              </>
-            ) : (
-              <>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: theme.colors.onSurfaceVariant }}
-                >
-                  10 seconds to 5 minutes long, max 60 MB
-                </Text>
-                <AudioPickerField
-                  media={state.deckAudio}
-                  onAudioPicked={uploadDeckAudio}
-                  onRemove={handleRemoveDeckAudio}
-                />
-              </>
-            )}
+            <View style={{ height: 24 }} />
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              Audio — 10 seconds to 5 minutes long, max 60 MB
+            </Text>
+            <AudioPickerField
+              media={state.deckAudio}
+              onAudioPicked={uploadDeckAudio}
+              onRemove={handleRemoveDeckAudio}
+            />
           </Card>
         )}
 
@@ -1397,17 +1367,36 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                 variant="bodyMedium"
                 style={{ color: theme.colors.onSurfaceVariant }}
               >
-                {state.deckAudio?.gcsPath ? "Audio" : "Video"}
+                Video
               </Text>
               <MaterialCommunityIcons
                 name={
-                  state.video?.gcsPath || state.deckAudio?.gcsPath
+                  state.video?.gcsPath ? "check-circle" : "alert-circle-outline"
+                }
+                size={20}
+                color={
+                  state.video?.gcsPath
+                    ? theme.colors.primary
+                    : theme.colors.error
+                }
+              />
+            </View>
+            <View style={styles.summaryRow}>
+              <Text
+                variant="bodyMedium"
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                Audio
+              </Text>
+              <MaterialCommunityIcons
+                name={
+                  state.deckAudio?.gcsPath
                     ? "check-circle"
                     : "alert-circle-outline"
                 }
                 size={20}
                 color={
-                  state.video?.gcsPath || state.deckAudio?.gcsPath
+                  state.deckAudio?.gcsPath
                     ? theme.colors.primary
                     : theme.colors.error
                 }
@@ -1517,9 +1506,6 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     marginBottom: 12,
-  },
-  mediaToggle: {
-    marginBottom: 16,
   },
   spacer: {
     height: 8,

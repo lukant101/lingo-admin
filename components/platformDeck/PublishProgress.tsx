@@ -185,7 +185,7 @@ export function PublishProgress({ draftId }: PublishProgressProps) {
           <View style={styles.statusBlock}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text variant="bodyMedium" style={styles.centerText}>
-              Translating and transcoding…
+              Translating and processing…
             </Text>
             <Text
               variant="bodySmall"
