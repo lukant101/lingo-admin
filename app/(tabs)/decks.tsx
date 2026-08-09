@@ -197,7 +197,7 @@ function DeckRow({
   const meta = [deck.level, `${deck.cardCount} cards`];
   if (deck.forKids) meta.push("kids");
   if (deck.hasVideo) meta.push("video");
-  else if (deck.audioUrl) meta.push("audio");
+  if (deck.audioUrl) meta.push("audio");
 
   return (
     <Pressable onPress={onPress}>

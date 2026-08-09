@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-08-08
+
+### Changed
+
+- Deck audio and deck video are now independent: deck audio can be added to any deck,
+  including one that already has a video. The published deck editor always offers the
+  audio field, and the creation wizard's Media step takes a video and an audio clip
+  side by side instead of forcing a choice between them
+- Decks can now be published without a video, so the publish screen no longer claims to
+  be transcoding one
+
 ## [0.2.1] - 2026-07-30
 
 ### Added
