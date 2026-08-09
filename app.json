@@ -2,7 +2,7 @@
   "expo": {
     "name": "lingo-admin",
     "slug": "lingo-admin",
-    "version": "0.2.0",
+    "version": "0.2.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lingoadmin",
