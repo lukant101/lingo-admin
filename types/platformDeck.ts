@@ -26,6 +26,8 @@ export type PlatformDeckDraftResponse = {
   videoSourcePath: string | null;
   audioSourcePath: string | null;
   cards: PlatformDeckDraftCard[];
+  /** Carried into the deck's tags on publish. */
+  tags: string[];
   deckId: string | null;
   errorCode: string | null;
   createdAt: string;

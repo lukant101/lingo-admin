@@ -218,6 +218,18 @@ function DeckRow({
             >
               {meta.join(" · ")}
             </Text>
+            {/* Tags are edited on the deck screen; showing them here is what
+                makes an untagged deck visible without opening it. The optional
+                chain covers an API deployed before tags existed. */}
+            {deck.tags?.length > 0 && (
+              <Text
+                variant="bodySmall"
+                numberOfLines={1}
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                {deck.tags.map((tag) => `#${tag}`).join(" ")}
+              </Text>
+            )}
           </View>
           <MaterialCommunityIcons
             name="chevron-right"

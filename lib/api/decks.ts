@@ -2,6 +2,7 @@ import { apiGet, apiPatch } from "./client";
 import type { DeckLevel } from "@/types/langs";
 import type {
   DeckCollectionMembership,
+  DeckTagSummary,
   PaginatedPlatformDecks,
   PlatformDeckWithCards,
   UpdatePlatformDeckInput,
@@ -46,6 +47,14 @@ export async function listPlatformDeckCollections(
   return apiGet<DeckCollectionMembership[]>(
     `/admin/decks/${deckId}/collections`
   );
+}
+
+/**
+ * Every tag already in use, most-used first. Tags are free-form, so this is
+ * what keeps the picker from breeding near-duplicates of the same label.
+ */
+export async function listDeckTags(): Promise<DeckTagSummary[]> {
+  return apiGet<DeckTagSummary[]>("/admin/deck-tags");
 }
 
 export async function updatePlatformDeck(

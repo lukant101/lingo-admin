@@ -1,3 +1,4 @@
+import { TagEditor } from "@/components/platformDeck/TagEditor";
 import { AudioPickerField } from "@/components/submission/AudioPickerField";
 import { CardEditor } from "@/components/submission/CardEditor";
 import { ImagePickerField } from "@/components/submission/ImagePickerField";
@@ -77,6 +78,7 @@ type PlatformDeckWizardProps = {
 
 type EditState = {
   title: string;
+  tags: string[];
   cards: CardDraft[];
   coverHorizontal: MediaUpload | null;
   coverVertical: MediaUpload | null;
@@ -91,6 +93,7 @@ type EditState = {
 
 type EditAction =
   | { type: "SET_TITLE"; title: string }
+  | { type: "SET_TAGS"; tags: string[] }
   | { type: "SET_CARDS"; cards: CardDraft[] }
   | { type: "UPDATE_CARD"; index: number; card: Partial<CardDraft> }
   | { type: "ADD_CARD" }
@@ -124,6 +127,8 @@ function editReducer(state: EditState, action: EditAction): EditState {
   switch (action.type) {
     case "SET_TITLE":
       return { ...state, title: action.title, error: null };
+    case "SET_TAGS":
+      return { ...state, tags: action.tags, error: null };
     case "SET_CARDS":
       return { ...state, cards: action.cards, error: null };
     case "UPDATE_CARD": {
@@ -171,6 +176,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
 function createInitialState(): EditState {
   return {
     title: "",
+    tags: [],
     cards: [createEmptyCard()],
     coverHorizontal: null,
     coverVertical: null,
@@ -266,6 +272,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
 
       const patch: Partial<EditState> = {
         title: draft.title,
+        tags: draft.tags ?? [],
         cards,
         currentStep: determineInitialStep(draft),
       };
@@ -1049,6 +1056,20 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     }
   };
 
+  // Persisted per chip rather than on blur: adds and removes are discrete
+  // events, and the draft is what carries them through to publish.
+  const handleTagsChange = async (tags: string[]) => {
+    dispatch({ type: "SET_TAGS", tags });
+    try {
+      await patchDraft({ tags });
+    } catch (err) {
+      dispatch({
+        type: "SET_ERROR",
+        error: (err as Error).message || "Failed to save tags",
+      });
+    }
+  };
+
   const handleCardTextBlur = async (cardIndex: number) => {
     if (!draft) return;
     const card = state.cards[cardIndex];
@@ -1071,6 +1092,9 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       queryClient.invalidateQueries({
         queryKey: ["platformDeck", "draft", draftId],
       });
+      // Publish copies the draft's tags into deck_tags, so the suggestion list
+      // the next deck sees is now stale.
+      queryClient.invalidateQueries({ queryKey: ["deckTags"] });
       router.replace(`/admin/platform-decks/${draftId}/publish`);
     },
     onError: (err: Error) => {
@@ -1366,6 +1390,11 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               onBlur={handleTitleBlur}
               maxLength={200}
             />
+            <Text variant="bodySmall" style={styles.tagsLabel}>
+              Tags (optional)
+            </Text>
+            <TagEditor tags={state.tags} onChange={handleTagsChange} />
+            <View style={styles.tagsSpacer} />
             <View style={styles.summaryRow}>
               <Text
                 variant="bodyMedium"
@@ -1527,6 +1556,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 8,
+  },
+  tagsLabel: {
+    marginBottom: 8,
+  },
+  tagsSpacer: {
+    height: 16,
   },
   errorContainer: {
     paddingHorizontal: 16,
