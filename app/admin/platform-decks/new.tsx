@@ -15,7 +15,7 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
-const STEP_LABELS = ["Collection", "Video", "Images", "Cards", "Publish"];
+const STEP_LABELS = ["Collection", "Media", "Images", "Cards", "Publish"];
 
 export default function NewPlatformDeckScreen() {
   const theme = useTheme();
@@ -42,11 +42,7 @@ export default function NewPlatformDeckScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StepIndicator
-        currentStep={1}
-        completedSteps={0}
-        labels={STEP_LABELS}
-      />
+      <StepIndicator currentStep={1} completedSteps={0} labels={STEP_LABELS} />
       <ScrollView contentContainerStyle={styles.content}>
         <Card>
           <Text variant="titleMedium" style={styles.heading}>
@@ -96,10 +92,7 @@ export default function NewPlatformDeckScreen() {
           disabled={!canCreate}
         />
       </ScrollView>
-      <StyledSnackbar
-        snackbar={snackbar}
-        onDismiss={() => setSnackbar(null)}
-      />
+      <StyledSnackbar snackbar={snackbar} onDismiss={() => setSnackbar(null)} />
     </View>
   );
 }

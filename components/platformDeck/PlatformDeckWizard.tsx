@@ -185,7 +185,9 @@ function createInitialState(): EditState {
 }
 
 function determineInitialStep(draft: PlatformDeckDraftResponse): WizardStep {
-  if (!draft.videoSourcePath && !draft.audioSourcePath) return 2;
+  // Deck audio is the required medium; video is optional. Matches the publish
+  // pipeline, which rejects an audio-less draft with DECK_AUDIO_NOT_SET.
+  if (!draft.audioSourcePath) return 2;
   if (!draft.horizontalImageSourcePath || !draft.verticalImageSourcePath)
     return 3;
   const cardsComplete =
@@ -1092,7 +1094,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
   const canAdvanceStep = (): boolean => {
     switch (state.currentStep) {
       case 2:
-        return state.video?.gcsPath != null || state.deckAudio?.gcsPath != null;
+        return state.deckAudio?.gcsPath != null;
       case 3:
         return (
           state.coverHorizontal?.gcsPath != null &&
@@ -1118,7 +1120,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
   const getValidationError = (): string => {
     switch (state.currentStep) {
       case 2:
-        return "Add a video or an audio clip";
+        return "An audio clip is required";
       case 3:
         return "Both cover images are required";
       case 4:
@@ -1172,7 +1174,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
 
   const completedSteps = (() => {
     let count = 1; // Collection is always done
-    if (state.video?.gcsPath || state.deckAudio?.gcsPath) count = 2;
+    if (state.deckAudio?.gcsPath) count = 2;
     if (
       count === 2 &&
       state.coverHorizontal?.gcsPath &&
@@ -1216,7 +1218,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Step 2 — Media (video or long audio) */}
+        {/* Step 2 — Media (required long audio, optional video) */}
         {state.currentStep === 2 && (
           <Card>
             <Text variant="titleMedium" style={styles.stepTitle}>
@@ -1229,13 +1231,14 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                 marginBottom: 12,
               }}
             >
-              Add a video, an audio clip, or both.
+              An audio clip is required. A video is optional — add one to ship a
+              deck with both.
             </Text>
             <Text
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              Video — 9:16 vertical, 10 seconds to 5 minutes long
+              Video (optional) — 9:16 vertical, 10 seconds to 5 minutes long
             </Text>
             <VideoPickerField
               media={state.video}
@@ -1247,7 +1250,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              Audio — 10 seconds to 5 minutes long, max 60 MB
+              Audio (required) — 10 seconds to 5 minutes long, max 60 MB
             </Text>
             <AudioPickerField
               media={state.deckAudio}
@@ -1369,15 +1372,17 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               >
                 Video
               </Text>
+              {/* Video is optional, so its absence is neutral — an audio-only
+                  deck is valid and must not read as broken here. */}
               <MaterialCommunityIcons
                 name={
-                  state.video?.gcsPath ? "check-circle" : "alert-circle-outline"
+                  state.video?.gcsPath ? "check-circle" : "minus-circle-outline"
                 }
                 size={20}
                 color={
                   state.video?.gcsPath
                     ? theme.colors.primary
-                    : theme.colors.error
+                    : theme.colors.onSurfaceVariant
                 }
               />
             </View>

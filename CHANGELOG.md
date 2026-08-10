@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-08-09
+
+### Fixed
+
+- The deck creation wizard now requires deck audio and treats video as optional, matching the
+  API. Publishing has required audio and allowed video-only decks to fail since API 0.4.6, but
+  the wizard still accepted a video-only draft, so an author could complete every step and only
+  hit `DECK_AUDIO_NOT_SET` at publish. The Media step now blocks on missing audio, a resumed
+  video-only draft reopens on Media instead of skipping ahead, and the review step no longer
+  flags an absent video as an error
+- The step indicator on the new-deck screen said "Video" where the wizard says "Media", a label
+  missed when the step was renamed in 0.2.2
+
 ## [0.2.2] - 2026-08-08
 
 ### Changed

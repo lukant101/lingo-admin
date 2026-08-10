@@ -23,7 +23,7 @@
 - audio support: (no transcoding) m4a and mp4 (AAC), mp3, wav
 - image support: webp (preferred), jpeg/jpg, png
 
-A platform deck can carry a video, a long audio clip (up to 5 minutes), both, or neither — the two are independent. Card audio is a separate, short clip.
+A platform deck always carries a long audio clip (up to 5 minutes) and may also carry a video — the two are independent, but publishing without audio fails with `DECK_AUDIO_NOT_SET`. Card audio is a separate, short clip.
 
 Note: mp4 is generally used for video, but it could be audio only; for example, DaVinci Resolve exports audio as mp4.
 
