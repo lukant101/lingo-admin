@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-08-10
+
+### Changed
+
+- Deck audio may now be as short as 5 seconds, down from 10. The old floor was
+  inherited from the video minimum rather than chosen for audio, and it was blocking
+  legitimate short clips. Nothing outside the admin UI enforced it — the API performs
+  no duration validation and the storage rules cap size only — so this lifts a
+  restriction that was never a technical constraint
+
 ## [0.2.3] - 2026-08-09
 
 ### Fixed
