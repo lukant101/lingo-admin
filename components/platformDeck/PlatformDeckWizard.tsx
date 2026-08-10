@@ -1250,7 +1250,8 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              Audio (required) — 10 seconds to 5 minutes long, max 60 MB
+              Audio (required) — {MIN_DECK_AUDIO_DURATION_MS / 1000} seconds to{" "}
+              {MAX_DECK_AUDIO_DURATION_MS / 1000 / 60} minutes long, max 60 MB
             </Text>
             <AudioPickerField
               media={state.deckAudio}
