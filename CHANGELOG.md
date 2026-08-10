@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   flags an absent video as an error
 - The step indicator on the new-deck screen said "Video" where the wizard says "Media", a label
   missed when the step was renamed in 0.2.2
+- `deploy:web` now sets `EXPO_PUBLIC_APP_ENV=production`. It only overrode `EXPO_PUBLIC_API_URL`,
+  so `.env.local` supplied `development` to the production build and web uploads landed under the
+  `devenv/` storage prefix. Uploads from the deployed app now use the unprefixed paths; anything
+  staged by an earlier build stays where it was written
 
 ## [0.2.2] - 2026-08-08
 
