@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-10
+
+### Added
+
+- Deck tags can now be managed from the admin app, both while creating a deck and when
+  editing one afterwards. Tags are free-form topical labels (`story`, `travel`, `bible`)
+  that have existed in the data model since the import but that no admin surface has ever
+  read or written. The deck editor gains a Tags card, the creation wizard's Review &
+  Publish step gains the same field, and the deck list shows each deck's tags so an
+  untagged deck is visible without opening it. The field suggests tags other decks already
+  use, with their deck counts — there is no controlled vocabulary, so the suggestions are
+  what keep a fourth spelling of the same label from being typed in. Tags are normalised
+  (trimmed, lowercased, deduped, at most 20 of 50 characters) on the way in. Needs the
+  matching API release that serves `/admin/deck-tags` and accepts `tags` on a deck or
+  draft; against an API without it the fields stay empty rather than failing
+
 ## [0.2.4] - 2026-08-10
 
 ### Changed
