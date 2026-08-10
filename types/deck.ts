@@ -55,8 +55,16 @@ export type PlatformDeck = {
   appleMusic: string | null;
   spotify: string | null;
   youtubeMusic: string | null;
+  /** Free-form topical labels, lowercase, sorted alphabetically. */
+  tags: string[];
   createdAt: string;
   updatedAt: string;
+};
+
+/** One tag in use across platform decks, with how many decks carry it. */
+export type DeckTagSummary = {
+  tag: string;
+  deckCount: number;
 };
 
 export type PlatformDeckWithCards = PlatformDeck & {
@@ -96,6 +104,8 @@ export type UpdatePlatformDeckInput = {
   appleMusic?: string;
   spotify?: string;
   youtubeMusic?: string;
+  /** Replaces the deck's whole tag set — send the full list, `[]` clears it. */
+  tags?: string[];
   /** Mates-bucket path of a newly uploaded image; the API copies it to the CDN. */
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;

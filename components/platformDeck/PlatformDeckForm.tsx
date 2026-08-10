@@ -7,6 +7,7 @@ import { IconButton, Switch, Text, useTheme } from "react-native-paper";
 import { GameImageUploadField } from "@/components/game/GameImageUploadField";
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
+import { TagEditor } from "@/components/platformDeck/TagEditor";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -41,6 +42,7 @@ type DeckFields = {
   title: string;
   level: DeckLevel;
   forKids: boolean;
+  tags: string[];
   url: string;
   spotify: string;
   appleMusic: string;
@@ -91,6 +93,9 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
       title: deck.title,
       level: deck.level,
       forKids: deck.forKids,
+      // ?? [] covers an API deployed before tags existed — the web app ships
+      // independently of it.
+      tags: deck.tags ?? [],
       url: deck.url ?? "",
       spotify: deck.spotify ?? "",
       appleMusic: deck.appleMusic ?? "",
@@ -144,6 +149,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         title: fields.title.trim(),
         level: fields.level,
         forKids: fields.forKids,
+        tags: fields.tags,
         url: fields.url.trim(),
         spotify: fields.spotify.trim(),
         appleMusic: fields.appleMusic.trim(),
@@ -170,6 +176,8 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         queryKey: ["adminPlatformDeck", deckId],
       });
       queryClient.invalidateQueries({ queryKey: ["collection"] });
+      // A tag invented here should show up as a suggestion on the next deck.
+      queryClient.invalidateQueries({ queryKey: ["deckTags"] });
       setSnackbar({ message: "Deck saved", type: "success" });
     } catch (err) {
       setSnackbar({
@@ -254,6 +262,19 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
               onValueChange={(value) => setField("forKids", value)}
             />
           </View>
+        </Card>
+
+        <Card style={styles.card}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Tags
+          </Text>
+          {/* Saved with the rest of the form, not on each chip change — the
+              whole set goes up with "Save changes". */}
+          <TagEditor
+            tags={fields.tags}
+            onChange={(tags) => setField("tags", tags)}
+            disabled={saving}
+          />
         </Card>
 
         <Card style={styles.card}>

@@ -111,6 +111,8 @@ export type UpdatePlatformDeckDraftInput = {
   videoSourcePath?: string | null;
   audioSourcePath?: string | null;
   cards?: PlatformDeckDraftCard[];
+  /** Replaces the draft's whole tag set; applied to the deck on publish. */
+  tags?: string[];
 };
 
 export async function updatePlatformDeckDraft(
@@ -167,7 +169,5 @@ export async function removeDeckFromCollection(
   collectionId: string,
   deckId: string
 ): Promise<void> {
-  await apiDelete<void>(
-    `/admin/collections/${collectionId}/decks/${deckId}`
-  );
+  await apiDelete<void>(`/admin/collections/${collectionId}/decks/${deckId}`);
 }
