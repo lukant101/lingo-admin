@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - Unreleased
+
+### Added
+
+- Cards on an already-published deck can now be edited. The deck editor's card list was
+  read-only, on the grounds that changing a card would leave the generated translations
+  stale — true, but it left typos, bad recordings and mistranslations fixable only by
+  deleting and republishing the whole deck. Each card row now expands in place into an
+  editor for its text and its audio clip. The two consequences of an edit are choices
+  rather than rules: re-translation ticks itself once the text is dirty but can be turned
+  off for a fix not worth regenerating sixty languages over, and turned on to re-run a bad
+  translation with the text untouched; replacing a clip pre-ticks "deck audio also needs
+  re-recording", since the deck track is one continuous recording of every card, and while
+  that is ticked the save is blocked until the new track is uploaded, so a deck is never
+  knowingly left inconsistent. Re-translation runs in the background, so the row shows its
+  progress and then either success or the languages that failed, with a retry scoped to
+  just those. Cards save one at a time, independently of the form's own Save changes.
+  Adding, removing and reordering cards remains a pre-publish operation. Needs the matching
+  API release that serves `/admin/decks/:deckId/cards/:cardId` and its translation-job
+  endpoints; against an API without it, saving a card fails rather than silently doing
+  nothing
+
 ## [0.2.5] - Unreleased
 
 ### Added
