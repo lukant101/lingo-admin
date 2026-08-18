@@ -16,16 +16,22 @@ service firebase.storage {
       return request.resource.size < 3 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
+    // Per-card clips. The content types must stay in step with
+    // FILE_LIMITS.audio in the admin app: the client validates against that
+    // list, so anything it accepts and this rejects fails here as a bare
+    // "Upload failed" with nothing to explain it. Chrome reports a .m4a picked
+    // through the OS dialog as audio/x-m4a, which is exactly how that gap first
+    // showed up — the type was added to the deck-audio list below and not here.
     function isValidAudio() {
       return request.resource.size < 3 * 1024 * 1024
-        && request.resource.contentType.matches('audio/(mp4|mpeg|wav)');
+        && request.resource.contentType.matches('audio/(mp4|x-m4a|mpeg|wav|wave|x-wav|vnd.wave)');
     }
     // Deck-level audio is a whole track rather than a per-card clip, so it gets
     // a much larger cap (see FILE_LIMITS.deckAudio in the admin app). The
     // content types mirror that same allow-list.
     function isValidDeckAudio() {
       return request.resource.size < 60 * 1024 * 1024
-        && request.resource.contentType.matches('audio/(mp4|x-m4a|mpeg|wav|wave|x-wav)');
+        && request.resource.contentType.matches('audio/(mp4|x-m4a|mpeg|wav|wave|x-wav|vnd.wave)');
     }
 
     // Platform deck draft — card audio clips

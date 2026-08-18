@@ -27,6 +27,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   endpoints; against an API without it, saving a card fails rather than silently doing
   nothing
 
+### Fixed
+
+- Replacing a card's audio with a `.m4a` failed with a bare "Upload failed". Chrome reports
+  a `.m4a` picked through the OS dialog as `audio/x-m4a`; the admin app accepts that but the
+  storage rule for per-card clips did not, so the file passed validation and was then
+  refused by Firebase with nothing on screen to explain why. The type had been added to the
+  deck-level audio rule and not the per-card one. Both rules now accept the same content
+  types the app does. This affected the creation wizard as much as the published-card
+  editor, and **needs the storage rules deployed separately** (`npm run deploy:storage-rules`)
+  — shipping the web app alone does not fix it
+
 ### Removed
 
 - In-app audio recording is gone. Admins upload prepared audio rather than recording it
