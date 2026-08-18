@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stale — true, but it left typos, bad recordings and mistranslations fixable only by
   deleting and republishing the whole deck. Each card row now expands in place into an
   editor for its text and its audio clip. The two consequences of an edit are choices
-  rather than rules: re-translation ticks itself once the text is dirty but can be turned
-  off for a fix not worth regenerating sixty languages over, and turned on to re-run a bad
+  rather than rules: re-translation is off unless asked for, since regenerating sixty
+  languages is rarely what a typo fix needs, and can equally be turned on to re-run a bad
   translation with the text untouched; replacing a clip pre-ticks "deck audio also needs
   re-recording", since the deck track is one continuous recording of every card, and while
   that is ticked the save is blocked until the new track is uploaded, so a deck is never

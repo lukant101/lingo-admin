@@ -70,7 +70,6 @@ export function DeckCardEditor({
     string | null
   >(null);
   const [retranslate, setRetranslate] = useState(false);
-  const [retranslateTouched, setRetranslateTouched] = useState(false);
   const [replaceDeckAudio, setReplaceDeckAudio] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -98,20 +97,13 @@ export function DeckCardEditor({
   const isTranslating = job?.status === "processing";
 
   const textChanged = text.trim() !== card.text;
-  // Defaults on once the text is dirty and off again if it's reverted, until
-  // the admin says otherwise: a typo fix may not be worth ~60 OpenAI calls, and
-  // a bad translation may be worth re-running with the text untouched.
-  const retranslateChecked = retranslateTouched ? retranslate : textChanged;
 
   // Ticked but nothing uploaded yet — the admin has said the track is stale, so
   // saving without it would knowingly leave the deck inconsistent.
   const deckAudioMissing = replaceDeckAudio && !pendingDeckAudioPath;
 
   const hasChanges =
-    textChanged ||
-    !!pendingAudioPath ||
-    !!pendingDeckAudioPath ||
-    retranslateChecked;
+    textChanged || !!pendingAudioPath || !!pendingDeckAudioPath || retranslate;
 
   const canSave =
     !saving &&
@@ -120,12 +112,16 @@ export function DeckCardEditor({
     !deckAudioMissing &&
     text.trim().length > 0;
 
+  // Seeds every field from the card as it currently stands. `text` is React
+  // state, so it does not track the prop on its own: after a save the deck
+  // refetches and the row's props carry the new text, but the input would keep
+  // whatever was in it. Called on open rather than only on close for exactly
+  // that reason — reopening must not show the pre-save text.
   const reset = () => {
     setText(card.text);
     setPendingAudioPath(null);
     setPendingDeckAudioPath(null);
     setRetranslate(false);
-    setRetranslateTouched(false);
     setReplaceDeckAudio(false);
   };
 
@@ -141,7 +137,7 @@ export function DeckCardEditor({
     if (pendingDeckAudioPath) {
       input.deckAudioSourcePath = pendingDeckAudioPath;
     }
-    if (retranslateChecked) input.retranslate = true;
+    if (retranslate) input.retranslate = true;
 
     setSaving(true);
     try {
@@ -188,7 +184,10 @@ export function DeckCardEditor({
           <IconButton
             icon="pencil"
             size={18}
-            onPress={() => setExpanded(true)}
+            onPress={() => {
+              reset();
+              setExpanded(true);
+            }}
           />
         )}
       </View>
@@ -236,12 +235,9 @@ export function DeckCardEditor({
             position="leading"
             style={styles.checkbox}
             labelStyle={styles.checkboxLabel}
-            status={retranslateChecked ? "checked" : "unchecked"}
+            status={retranslate ? "checked" : "unchecked"}
             disabled={saving || isTranslating}
-            onPress={() => {
-              setRetranslateTouched(true);
-              setRetranslate(!retranslateChecked);
-            }}
+            onPress={() => setRetranslate(!retranslate)}
           />
           <Text
             variant="bodySmall"
