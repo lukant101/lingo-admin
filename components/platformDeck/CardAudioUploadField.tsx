@@ -1,5 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 
@@ -16,13 +16,6 @@ import {
 } from "@/lib/uploadValidation";
 import type { MediaUpload } from "@/types/submission";
 
-/** A clip handed back by the record screen, ready to be staged. */
-export type IncomingRecording = {
-  uri: string;
-  filename: string;
-  durationMs: number;
-};
-
 type CardAudioUploadFieldProps = {
   label: string;
   /** CDN URL of the card's current clip. */
@@ -30,11 +23,6 @@ type CardAudioUploadFieldProps = {
   buildGcsPath: (filename: string) => string;
   onUploaded: (gcsPath: string) => void;
   onRemove: () => void;
-  /** Omit to hide the record button (e.g. where recording isn't reachable). */
-  onRecord?: () => void;
-  /** Staged as soon as it arrives; the parent clears it via onRecordingHandled. */
-  incomingRecording?: IncomingRecording | null;
-  onRecordingHandled?: () => void;
   disabled?: boolean;
 };
 
@@ -50,9 +38,6 @@ export function CardAudioUploadField({
   buildGcsPath,
   onUploaded,
   onRemove,
-  onRecord,
-  incomingRecording,
-  onRecordingHandled,
   disabled = false,
 }: CardAudioUploadFieldProps) {
   const theme = useTheme();
@@ -73,8 +58,6 @@ export function CardAudioUploadField({
     fileName: string;
     fileSize: number | null;
     mimeType: string | null;
-    /** Known for recordings; probed for picked files. */
-    durationMs?: number;
   }) => {
     const { uri, fileName, fileSize, mimeType } = params;
 
@@ -87,7 +70,7 @@ export function CardAudioUploadField({
     if (error) return fail(error);
 
     // A failed probe resolves 0; don't reject on that.
-    const durationMs = params.durationMs ?? (await getAudioDurationMs(uri));
+    const durationMs = await getAudioDurationMs(uri);
     if (durationMs > 0 && durationMs < MIN_AUDIO_DURATION_MS) {
       return fail(
         `Audio too short (${(durationMs / 1000).toFixed(1)}s). Minimum is ${MIN_AUDIO_DURATION_MS / 1000} seconds.`
@@ -143,30 +126,9 @@ export function CardAudioUploadField({
     });
   };
 
-  // Recordings arrive from a separate screen rather than a picker callback, so
-  // they land as a prop. Keyed on the uri so re-renders don't re-upload.
-  const stagedRecordingUri = useRef<string | null>(null);
-  useEffect(() => {
-    if (!incomingRecording) return;
-    if (stagedRecordingUri.current === incomingRecording.uri) return;
-    stagedRecordingUri.current = incomingRecording.uri;
-
-    void stage({
-      uri: incomingRecording.uri,
-      fileName: incomingRecording.filename,
-      fileSize: null,
-      mimeType: null,
-      durationMs: incomingRecording.durationMs,
-    }).then(() => onRecordingHandled?.());
-    // stage closes over buildGcsPath/onUploaded, which are re-created each
-    // render; the uri guard above is what keeps this from re-running.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incomingRecording]);
-
   const handleRemove = async () => {
     await player.stop();
     setMedia(null);
-    stagedRecordingUri.current = null;
     onRemove();
   };
 
@@ -217,22 +179,11 @@ export function CardAudioUploadField({
       )}
 
       {!media?.isUploading && !disabled && (
-        <View style={styles.buttons}>
-          <Button
-            title={hasAudio ? "Replace" : "Pick File"}
-            onPress={pickAndUpload}
-            variant="outline"
-            style={styles.button}
-          />
-          {onRecord && (
-            <Button
-              title="Record"
-              onPress={onRecord}
-              variant="secondary"
-              style={styles.button}
-            />
-          )}
-        </View>
+        <Button
+          title={hasAudio ? "Replace" : "Pick File"}
+          onPress={pickAndUpload}
+          variant="outline"
+        />
       )}
 
       {media?.isUploading && (
@@ -258,13 +209,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   fileName: {
-    flex: 1,
-  },
-  buttons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  button: {
     flex: 1,
   },
 });

@@ -27,6 +27,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   endpoints; against an API without it, saving a card fails rather than silently doing
   nothing
 
+### Removed
+
+- In-app audio recording is gone. Admins upload prepared audio rather than recording it
+  themselves, so the Record button on card audio — in the deck creation wizard as well as
+  the new published-card editor — was a path nobody took. Picking a file is now the only
+  way to set card audio, as it always has been for the deck-level track. This also removes
+  the record screen, the module-level handoff it used to return a clip to whichever screen
+  opened it, and the recorder hook, along with the "this browser does not support audio
+  recording" notice that the wizard showed when a browser lacked the necessary support
+
 ## [0.2.5] - Unreleased
 
 ### Added

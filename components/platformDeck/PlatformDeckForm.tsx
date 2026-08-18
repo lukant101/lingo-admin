@@ -1,11 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Switch, Text, useTheme } from "react-native-paper";
 
 import { GameImageUploadField } from "@/components/game/GameImageUploadField";
-import type { IncomingRecording } from "@/components/platformDeck/CardAudioUploadField";
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
 import { DeckCardEditor } from "@/components/platformDeck/DeckCardEditor";
@@ -23,7 +22,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
 import { DECK_LEVELS } from "@/lib/constants";
 import { getVariantName } from "@/lib/languages";
-import { consumeRecordingResult } from "@/lib/recordingResult";
 import {
   platformDeckAudioPath,
   platformDeckCoverImagePath,
@@ -59,7 +57,6 @@ const LEVEL_OPTIONS = DECK_LEVELS.map((level) => ({
 
 export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   const theme = useTheme();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -76,12 +73,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   >(null);
   const [pendingAudioPath, setPendingAudioPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  // Which card sent the admin to the record screen, and what came back. Held
-  // here rather than in each card editor because consumeRecordingResult() is a
-  // one-shot handoff — several editors polling it would race each other.
-  const [recordingCardId, setRecordingCardId] = useState<string | null>(null);
-  const [incomingRecording, setIncomingRecording] =
-    useState<IncomingRecording | null>(null);
 
   const {
     data: deck,
@@ -109,39 +100,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
       youtubeMusic: deck.youtubeMusic ?? "",
     });
   }, [deck, fields]);
-
-  // The record screen hands its clip back through a module-level slot, so it
-  // has to be collected when this screen regains focus.
-  useFocusEffect(
-    useCallback(() => {
-      if (!recordingCardId) return;
-      const result = consumeRecordingResult();
-      // Cancelled recording — release the slot rather than leaving the card
-      // waiting for a clip that will never arrive.
-      if (!result) {
-        setRecordingCardId(null);
-        return;
-      }
-      setIncomingRecording({
-        uri: result.uri,
-        filename: result.filename,
-        durationMs: result.durationMs,
-      });
-    }, [recordingCardId])
-  );
-
-  const clearRecording = () => {
-    setIncomingRecording(null);
-    setRecordingCardId(null);
-  };
-
-  const handleRecordCard = (cardId: string) => {
-    setRecordingCardId(cardId);
-    setIncomingRecording(null);
-    // The record screen ignores its route param, so the deck id stands in for
-    // the draft id — the same substitution the staging paths make.
-    router.push(`/admin/platform-decks/${deckId}/record`);
-  };
 
   // Replacement covers are staged like draft images: to the mates bucket under
   // the platformDeckDrafts prefix (with the deck id in the draft-id slot), then
@@ -479,11 +437,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                   setSnackbar({ message: "Card saved", type: "success" });
                 }}
                 onError={(message) => setSnackbar({ message, type: "error" })}
-                onRecord={() => handleRecordCard(card.id)}
-                incomingRecording={
-                  recordingCardId === card.id ? incomingRecording : null
-                }
-                onRecordingHandled={clearRecording}
               />
             ))}
         </Card>

@@ -11,7 +11,6 @@ type CardEditorProps = {
   onTextChange: (text: string) => void;
   onTextBlur?: () => void;
   onPickAudio: () => void;
-  onRecordAudio?: () => void;
   onPlayAudio: () => void;
   onRemoveAudio: () => void;
   onRemoveCard: () => void;
@@ -29,7 +28,6 @@ export function CardEditor({
   onTextChange,
   onTextBlur,
   onPickAudio,
-  onRecordAudio,
   onPlayAudio,
   onRemoveAudio,
   onRemoveCard,
@@ -110,22 +108,7 @@ export function CardEditor({
             )}
           </View>
         ) : !audioLocked ? (
-          <View style={styles.audioButtons}>
-            <Button
-              title="Pick File"
-              onPress={onPickAudio}
-              variant="outline"
-              style={{ flex: 1 }}
-            />
-            {onRecordAudio && (
-              <Button
-                title="Record"
-                onPress={onRecordAudio}
-                variant="secondary"
-                style={{ flex: 1 }}
-              />
-            )}
-          </View>
+          <Button title="Pick File" onPress={onPickAudio} variant="outline" />
         ) : null}
 
         {card.isUploading && (
@@ -170,9 +153,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-  },
-  audioButtons: {
-    flexDirection: "row",
-    gap: 8,
   },
 });

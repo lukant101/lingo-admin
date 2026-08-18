@@ -9,10 +9,7 @@ import {
   useTheme,
 } from "react-native-paper";
 
-import {
-  CardAudioUploadField,
-  type IncomingRecording,
-} from "@/components/platformDeck/CardAudioUploadField";
+import { CardAudioUploadField } from "@/components/platformDeck/CardAudioUploadField";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -44,10 +41,6 @@ type DeckCardEditorProps = {
   uploadBasePath: string;
   onSaved: (result: PlatformDeckCardUpdateResult) => void;
   onError: (message: string) => void;
-  /** Sends the admin to the record screen; the clip comes back as a prop. */
-  onRecord: () => void;
-  incomingRecording: IncomingRecording | null;
-  onRecordingHandled: () => void;
 };
 
 /**
@@ -66,9 +59,6 @@ export function DeckCardEditor({
   uploadBasePath,
   onSaved,
   onError,
-  onRecord,
-  incomingRecording,
-  onRecordingHandled,
 }: DeckCardEditorProps) {
   const theme = useTheme();
   const queryClient = useQueryClient();
@@ -238,9 +228,6 @@ export function DeckCardEditor({
               setPendingAudioPath(null);
               setReplaceDeckAudio(false);
             }}
-            onRecord={onRecord}
-            incomingRecording={incomingRecording}
-            onRecordingHandled={onRecordingHandled}
             disabled={saving || isTranslating}
           />
 
