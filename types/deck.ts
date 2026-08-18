@@ -90,15 +90,13 @@ export type PlatformDeck = {
   /** Free-form topical labels, lowercase, sorted alphabetically. */
   tags: string[];
   /**
-   * True when this deck is one language of a deck set — the same content
-   * authored as ~40 sibling decks rather than one deck plus translation decks.
-   * Such a deck has no translations of its own (a learner's translation is the
-   * sibling deck's card text at the same position), so re-translating a card is
-   * a no-op. `?? false` at the use site covers an API deployed before this
-   * field existed; the web app ships independently of it.
+   * Groups the sibling decks of a deck set — the same content authored as ~40
+   * decks, one per language. Non-null means this deck is in a set, and so has
+   * no translations of its own: a learner's translation is the sibling deck's
+   * card text at the same position, which makes re-translating a card a no-op.
+   * Undefined against an API deployed before the field existed, so `!= null`
+   * reads as "not in a set" there and the editor behaves as it did before.
    */
-  hasVariants?: boolean;
-  /** Groups the sibling decks of a set; null when the deck isn't in one. */
   variantsSetId?: string | null;
   createdAt: string;
   updatedAt: string;
