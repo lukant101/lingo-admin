@@ -39,6 +39,13 @@ type DeckCardEditorProps = {
   deckAudioUrl: string | null;
   /** Mates-bucket staging prefix for this deck's replacement uploads. */
   uploadBasePath: string;
+  /**
+   * True when the deck is one language of a deck set. Those decks have no
+   * translations of their own — a learner's translation is the sibling deck's
+   * card text at the same position — so re-translation is offered as disabled
+   * with an explanation rather than left to fail as NO_TRANSLATION_DECKS.
+   */
+  deckInVariantSet: boolean;
   onSaved: (result: PlatformDeckCardUpdateResult) => void;
   onError: (message: string) => void;
 };
@@ -57,6 +64,7 @@ export function DeckCardEditor({
   card,
   deckAudioUrl,
   uploadBasePath,
+  deckInVariantSet,
   onSaved,
   onError,
 }: DeckCardEditorProps) {
@@ -102,8 +110,14 @@ export function DeckCardEditor({
   // saving without it would knowingly leave the deck inconsistent.
   const deckAudioMissing = replaceDeckAudio && !pendingDeckAudioPath;
 
+  // A deck-set deck can never ask for re-translation, whatever the state says.
+  const wantsRetranslation = retranslate && !deckInVariantSet;
+
   const hasChanges =
-    textChanged || !!pendingAudioPath || !!pendingDeckAudioPath || retranslate;
+    textChanged ||
+    !!pendingAudioPath ||
+    !!pendingDeckAudioPath ||
+    wantsRetranslation;
 
   const canSave =
     !saving &&
@@ -137,7 +151,7 @@ export function DeckCardEditor({
     if (pendingDeckAudioPath) {
       input.deckAudioSourcePath = pendingDeckAudioPath;
     }
-    if (retranslate) input.retranslate = true;
+    if (wantsRetranslation) input.retranslate = true;
 
     setSaving(true);
     try {
@@ -235,16 +249,17 @@ export function DeckCardEditor({
             position="leading"
             style={styles.checkbox}
             labelStyle={styles.checkboxLabel}
-            status={retranslate ? "checked" : "unchecked"}
-            disabled={saving || isTranslating}
+            status={wantsRetranslation ? "checked" : "unchecked"}
+            disabled={saving || isTranslating || deckInVariantSet}
             onPress={() => setRetranslate(!retranslate)}
           />
           <Text
             variant="bodySmall"
             style={{ color: theme.colors.onSurfaceVariant }}
           >
-            Regenerates this card&apos;s translation in every language the deck
-            was published into. Runs in the background.
+            {deckInVariantSet
+              ? "This deck has no translations of its own: it belongs to a deck set — the same content in around forty languages. A learner's translation is the matching card in the sibling deck for their language, so editing this card's text already updates what they see. To fix another language, edit that deck directly."
+              : "Regenerates this card's translation in every language the deck was published into. Runs in the background."}
           </Text>
 
           <Checkbox.Item

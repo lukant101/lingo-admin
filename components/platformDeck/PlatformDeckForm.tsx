@@ -428,6 +428,8 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                 card={card}
                 deckAudioUrl={deck.audioUrl}
                 uploadBasePath={uploadBasePath}
+                // ?? false covers an API deployed before the field existed.
+                deckInVariantSet={deck.hasVariants ?? false}
                 onSaved={() => {
                   // The save may have replaced the deck's audio track too, so
                   // refetch the deck rather than patching the card in place.
