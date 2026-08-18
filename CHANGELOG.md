@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   endpoints; against an API without it, saving a card fails rather than silently doing
   nothing
 
+- Re-translating a card is offered as disabled, with an explanation, on a deck that belongs
+  to a deck set. Most of the catalogue is deck sets — the same content authored as around
+  forty sibling decks, one per language — and those decks have no translations of their own:
+  a learner's translation is the matching card in the sibling deck for their language. So
+  editing a card's text there already updates what learners see, and asking for a
+  re-translation would have failed at runtime with nothing written. To correct another
+  language, edit that language's deck directly
+
 ### Fixed
 
 - Replacing a card's audio with a `.m4a` failed with a bare "Upload failed". Chrome reports

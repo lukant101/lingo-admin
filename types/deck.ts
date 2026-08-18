@@ -89,6 +89,17 @@ export type PlatformDeck = {
   youtubeMusic: string | null;
   /** Free-form topical labels, lowercase, sorted alphabetically. */
   tags: string[];
+  /**
+   * True when this deck is one language of a deck set — the same content
+   * authored as ~40 sibling decks rather than one deck plus translation decks.
+   * Such a deck has no translations of its own (a learner's translation is the
+   * sibling deck's card text at the same position), so re-translating a card is
+   * a no-op. `?? false` at the use site covers an API deployed before this
+   * field existed; the web app ships independently of it.
+   */
+  hasVariants?: boolean;
+  /** Groups the sibling decks of a set; null when the deck isn't in one. */
+  variantsSetId?: string | null;
   createdAt: string;
   updatedAt: string;
 };
