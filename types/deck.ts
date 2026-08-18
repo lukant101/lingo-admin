@@ -25,6 +25,32 @@ export type PaginatedDecks = {
 
 // --- Platform decks (published, creatorId IS NULL) ---
 
+export type CardTranslationJobStatus = "processing" | "completed" | "failed";
+
+/**
+ * One run of "refresh this card's translations". A published deck fans out into
+ * ~60 translation decks, so this runs in the background and the editor polls it.
+ */
+export type CardTranslationJob = {
+  id: string;
+  cardId: string;
+  deckId: string;
+  status: CardTranslationJobStatus;
+  /** The card text this run translated — may already be stale. */
+  sourceText: string;
+  totalTargets: number;
+  completedTargets: number;
+  /**
+   * Variants that couldn't be refreshed. The job still counts as completed —
+   * a partial refresh beats none — and these can be retried on their own.
+   */
+  failedVariantCodes: string[];
+  errorCode: string | null;
+  createdAt: string;
+  completedAt: string | null;
+  failedAt: string | null;
+};
+
 export type PlatformDeckCard = {
   id: string;
   text: string;
@@ -32,6 +58,12 @@ export type PlatformDeckCard = {
   position: number;
   createdAt: string;
   updatedAt: string;
+  /**
+   * Most recent translation refresh for this card, so reopening a deck mid-job
+   * resumes polling instead of looking idle. `?? null` at the use site covers an
+   * API deployed before card editing existed.
+   */
+  translationJob: CardTranslationJob | null;
 };
 
 export type PlatformDeck = {
@@ -111,4 +143,25 @@ export type UpdatePlatformDeckInput = {
   verticalImageSourcePath?: string;
   firstVideoFrameSourcePath?: string;
   audioSourcePath?: string;
+};
+
+export type UpdatePlatformDeckCardInput = {
+  text?: string;
+  /** Mates-bucket path of a newly uploaded clip for this card. */
+  audioSourcePath?: string;
+  /**
+   * Mates-bucket path of a new deck-level audio track. The track is one
+   * continuous recording of every card, so replacing a card's clip leaves it
+   * stale — the editor pairs the two, the API accepts them independently.
+   */
+  deckAudioSourcePath?: string;
+  /** Regenerate this card's translations across every translation deck. */
+  retranslate?: boolean;
+};
+
+export type PlatformDeckCardUpdateResult = {
+  card: PlatformDeckCard;
+  /** The deck's audio URL after the save — new if the track was replaced. */
+  deckAudioUrl: string | null;
+  translationJob: CardTranslationJob | null;
 };

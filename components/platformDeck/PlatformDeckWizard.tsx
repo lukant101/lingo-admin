@@ -25,7 +25,6 @@ import {
   resizeForCover,
   type ResizeResult,
 } from "@/lib/imageProcessing";
-import { consumeRecordingResult } from "@/lib/recordingResult";
 import {
   adminCardAudioPath,
   adminCoverImagePath,
@@ -55,8 +54,8 @@ import type { CardDraft, MediaUpload } from "@/types/submission";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useReducer, useState } from "react";
 import {
   BackHandler,
   Platform,
@@ -86,7 +85,6 @@ type EditState = {
   deckAudio: MediaUpload | null;
   isSaving: boolean;
   isPublishing: boolean;
-  activeCardForRecording: number | null;
   error: string | null;
   currentStep: WizardStep;
 };
@@ -104,7 +102,6 @@ type EditAction =
   | { type: "SET_DECK_AUDIO"; media: MediaUpload | null }
   | { type: "SET_SAVING"; isSaving: boolean }
   | { type: "SET_PUBLISHING"; isPublishing: boolean }
-  | { type: "SET_ACTIVE_CARD_FOR_RECORDING"; index: number | null }
   | { type: "SET_ERROR"; error: string | null }
   | { type: "SET_STEP"; step: WizardStep }
   | { type: "INIT"; state: Partial<EditState> };
@@ -160,8 +157,6 @@ function editReducer(state: EditState, action: EditAction): EditState {
       return { ...state, isSaving: action.isSaving };
     case "SET_PUBLISHING":
       return { ...state, isPublishing: action.isPublishing };
-    case "SET_ACTIVE_CARD_FOR_RECORDING":
-      return { ...state, activeCardForRecording: action.index };
     case "SET_ERROR":
       return { ...state, error: action.error };
     case "SET_STEP":
@@ -184,7 +179,6 @@ function createInitialState(): EditState {
     deckAudio: null,
     isSaving: false,
     isPublishing: false,
-    activeCardForRecording: null,
     error: null,
     currentStep: 2,
   };
@@ -233,11 +227,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       audioPlayer.onComplete.current = null;
     };
   }, [audioPlayer.onComplete]);
-
-  const canRecord =
-    Platform.OS !== "web" ||
-    (typeof MediaRecorder !== "undefined" &&
-      MediaRecorder.isTypeSupported("audio/mp4"));
 
   const { data: draft, isLoading } = useQuery({
     queryKey: ["platformDeck", "draft", draftId],
@@ -365,45 +354,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     });
     return () => handler.remove();
   }, [state.currentStep]);
-
-  // Consume recording result when returning from record screen
-  useFocusEffect(
-    useCallback(() => {
-      const result = consumeRecordingResult();
-      if (result && state.activeCardForRecording !== null) {
-        const cardIndex = state.activeCardForRecording;
-        dispatch({ type: "SET_ACTIVE_CARD_FOR_RECORDING", index: null });
-
-        if (result.durationMs < MIN_AUDIO_DURATION_MS) {
-          dispatch({
-            type: "UPDATE_CARD",
-            index: cardIndex,
-            card: {
-              error: `Audio too short (${(result.durationMs / 1000).toFixed(1)}s). Minimum is ${MIN_AUDIO_DURATION_MS / 1000} seconds.`,
-            },
-          });
-          return;
-        }
-        if (result.durationMs > MAX_AUDIO_DURATION_MS) {
-          dispatch({
-            type: "UPDATE_CARD",
-            index: cardIndex,
-            card: {
-              error: `Audio too long (${(result.durationMs / 1000).toFixed(1)}s). Maximum is 10 seconds.`,
-            },
-          });
-          return;
-        }
-
-        dispatch({
-          type: "UPDATE_CARD",
-          index: cardIndex,
-          card: { audioUri: result.uri, audioGcsPath: null },
-        });
-        uploadCardAudio(cardIndex, result.uri, result.filename);
-      }
-    }, [state.activeCardForRecording])
-  );
 
   // --- PATCH helpers ---
 
@@ -547,11 +497,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       card: { audioUri: asset.uri, audioGcsPath: null },
     });
     uploadCardAudio(cardIndex, asset.uri, asset.name);
-  };
-
-  const handleRecordAudio = (cardIndex: number) => {
-    dispatch({ type: "SET_ACTIVE_CARD_FOR_RECORDING", index: cardIndex });
-    router.push(`/admin/platform-decks/${draftId}/record`);
   };
 
   const handlePlayAudio = async (cardIndex: number) => {
@@ -1331,18 +1276,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               Each card needs an audio clip (0.5–10 seconds) and matching text
               (max {MAX_CARD_TEXT} characters).
             </Text>
-            {!canRecord && (
-              <Text
-                variant="bodySmall"
-                style={{
-                  color: theme.colors.onSurfaceVariant,
-                  marginBottom: 12,
-                }}
-              >
-                This browser does not support audio recording. Upload files
-                instead.
-              </Text>
-            )}
             <View style={styles.cardsContainer}>
               {state.cards.map((card, index) => (
                 <CardEditor
@@ -1355,9 +1288,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
                   }
                   onTextBlur={() => handleCardTextBlur(index)}
                   onPickAudio={() => handlePickAudio(index)}
-                  onRecordAudio={
-                    canRecord ? () => handleRecordAudio(index) : undefined
-                  }
                   onPlayAudio={() => handlePlayAudio(index)}
                   onRemoveAudio={() => handleRemoveAudio(index)}
                   onRemoveCard={() => dispatch({ type: "REMOVE_CARD", index })}

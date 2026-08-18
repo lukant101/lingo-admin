@@ -2,11 +2,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { IconButton, Switch, Text, useTheme } from "react-native-paper";
+import { Switch, Text, useTheme } from "react-native-paper";
 
 import { GameImageUploadField } from "@/components/game/GameImageUploadField";
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
+import { DeckCardEditor } from "@/components/platformDeck/DeckCardEditor";
 import { TagEditor } from "@/components/platformDeck/TagEditor";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -18,7 +19,6 @@ import {
   type SnackbarState,
 } from "@/components/ui/StyledSnackbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
 import { DECK_LEVELS } from "@/lib/constants";
 import { getVariantName } from "@/lib/languages";
@@ -73,9 +73,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
   >(null);
   const [pendingAudioPath, setPendingAudioPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [playingCardId, setPlayingCardId] = useState<string | null>(null);
-
-  const audioPlayer = useAudioPlayer();
 
   const {
     data: deck,
@@ -104,13 +101,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
     });
   }, [deck, fields]);
 
-  useEffect(() => {
-    audioPlayer.onComplete.current = () => setPlayingCardId(null);
-    return () => {
-      audioPlayer.onComplete.current = null;
-    };
-  }, [audioPlayer.onComplete]);
-
   // Replacement covers are staged like draft images: to the mates bucket under
   // the platformDeckDrafts prefix (with the deck id in the draft-id slot), then
   // the API copies them to the CDN on save.
@@ -123,17 +113,6 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
     value: DeckFields[K]
   ) => {
     setFields((prev) => (prev ? { ...prev, [key]: value } : prev));
-  };
-
-  const handlePlayCard = async (cardId: string, audioUrl: string) => {
-    if (playingCardId === cardId) {
-      await audioPlayer.stop();
-      setPlayingCardId(null);
-      return;
-    }
-    await audioPlayer.stop();
-    setPlayingCardId(cardId);
-    await audioPlayer.play(audioUrl);
   };
 
   const handleSave = async () => {
@@ -437,21 +416,29 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
               marginBottom: 12,
             }}
           >
-            Card text and audio are set before publishing and can't be changed
-            here — editing them would leave the generated translations stale.
+            Cards save one at a time, separately from the rest of this form.
+            Adding, removing and reordering still has to happen before
+            publishing.
           </Text>
-          {deck.cards.map((card) => (
-            <View key={card.id} style={styles.cardRow}>
-              <Text variant="bodyMedium" style={styles.cardText}>
-                {card.text}
-              </Text>
-              <IconButton
-                icon={playingCardId === card.id ? "stop" : "play"}
-                size={20}
-                onPress={() => handlePlayCard(card.id, card.audioUrl)}
+          {uploadBasePath &&
+            deck.cards.map((card) => (
+              <DeckCardEditor
+                key={card.id}
+                deckId={deckId}
+                card={card}
+                deckAudioUrl={deck.audioUrl}
+                uploadBasePath={uploadBasePath}
+                onSaved={() => {
+                  // The save may have replaced the deck's audio track too, so
+                  // refetch the deck rather than patching the card in place.
+                  queryClient.invalidateQueries({
+                    queryKey: ["adminPlatformDeck", deckId],
+                  });
+                  setSnackbar({ message: "Card saved", type: "success" });
+                }}
+                onError={(message) => setSnackbar({ message, type: "error" })}
               />
-            </View>
-          ))}
+            ))}
         </Card>
 
         <Button
@@ -497,14 +484,6 @@ const styles = StyleSheet.create({
   },
   imageSpacer: {
     height: 24,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  cardText: {
-    flex: 1,
   },
   saveButton: {
     marginTop: 8,

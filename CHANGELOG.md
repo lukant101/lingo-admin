@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - Unreleased
+
+### Added
+
+- Cards on an already-published deck can now be edited. The deck editor's card list was
+  read-only, on the grounds that changing a card would leave the generated translations
+  stale — true, but it left typos, bad recordings and mistranslations fixable only by
+  deleting and republishing the whole deck. Each card row now expands in place into an
+  editor for its text and its audio clip. The two consequences of an edit are choices
+  rather than rules: re-translation is off unless asked for, since regenerating sixty
+  languages is rarely what a typo fix needs, and can equally be turned on to re-run a bad
+  translation with the text untouched; replacing a clip pre-ticks "deck audio also needs
+  re-recording", since the deck track is one continuous recording of every card, and while
+  that is ticked the save is blocked until the new track is uploaded, so a deck is never
+  knowingly left inconsistent. Re-translation runs in the background, so the row shows its
+  progress and then either success or the languages that failed, with a retry scoped to
+  just those. Cards save one at a time, independently of the form's own Save changes.
+  Adding, removing and reordering cards remains a pre-publish operation. Needs the matching
+  API release that serves `/admin/decks/:deckId/cards/:cardId` and its translation-job
+  endpoints; against an API without it, saving a card fails rather than silently doing
+  nothing
+
+### Fixed
+
+- Replacing a card's audio with a `.m4a` failed with a bare "Upload failed". Chrome reports
+  a `.m4a` picked through the OS dialog as `audio/x-m4a`; the admin app accepts that but the
+  storage rule for per-card clips did not, so the file passed validation and was then
+  refused by Firebase with nothing on screen to explain why. The type had been added to the
+  deck-level audio rule and not the per-card one. Both rules now accept the same content
+  types the app does. This affected the creation wizard as much as the published-card
+  editor, and **needs the storage rules deployed separately** (`npm run deploy:storage-rules`)
+  — shipping the web app alone does not fix it
+
+### Removed
+
+- In-app audio recording is gone. Admins upload prepared audio rather than recording it
+  themselves, so the Record button on card audio — in the deck creation wizard as well as
+  the new published-card editor — was a path nobody took. Picking a file is now the only
+  way to set card audio, as it always has been for the deck-level track. This also removes
+  the record screen, the module-level handoff it used to return a clip to whichever screen
+  opened it, and the recorder hook, along with the "this browser does not support audio
+  recording" notice that the wizard showed when a browser lacked the necessary support
+
 ## [0.2.5] - Unreleased
 
 ### Added
