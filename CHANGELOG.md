@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.6] - Unreleased
+## [0.2.6] - 2026-08-18
+
+Card editing needs the matching API release deployed first — see the note on the first
+entry below.
 
 ### Added
 
@@ -43,8 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   refused by Firebase with nothing on screen to explain why. The type had been added to the
   deck-level audio rule and not the per-card one. Both rules now accept the same content
   types the app does. This affected the creation wizard as much as the published-card
-  editor, and **needs the storage rules deployed separately** (`npm run deploy:storage-rules`)
-  — shipping the web app alone does not fix it
+  editor. Note the storage rules are a separate artifact from the web bundle
+  (`npm run deploy:storage-rules`), so a web deploy alone would not have fixed it; the rules
+  were deployed on 2026-08-18
 
 ### Removed
 
@@ -56,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opened it, and the recorder hook, along with the "this browser does not support audio
   recording" notice that the wizard showed when a browser lacked the necessary support
 
-## [0.2.5] - Unreleased
+## [0.2.5] - 2026-08-18
 
 ### Added
 
@@ -72,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   matching API release that serves `/admin/deck-tags` and accepts `tags` on a deck or
   draft; against an API without it the fields stay empty rather than failing
 
-## [0.2.4] - Unreleased
+## [0.2.4] - 2026-08-18
 
 ### Changed
 
