@@ -8,6 +8,7 @@ import { GameImageUploadField } from "@/components/game/GameImageUploadField";
 import { CollectionMembershipList } from "@/components/platformDeck/CollectionMembershipList";
 import { DeckAudioUploadField } from "@/components/platformDeck/DeckAudioUploadField";
 import { DeckCardEditor } from "@/components/platformDeck/DeckCardEditor";
+import { DeckVideoReplaceField } from "@/components/platformDeck/DeckVideoReplaceField";
 import { TagEditor } from "@/components/platformDeck/TagEditor";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -26,6 +27,7 @@ import {
   platformDeckAudioPath,
   platformDeckCoverImagePath,
   platformDeckFirstFramePath,
+  platformDeckVideoPath,
   storagePath,
 } from "@/lib/storage";
 import {
@@ -321,8 +323,8 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
                       marginTop: 8,
                     }}
                   >
-                    Extracted from the video on publish. Upload one here to
-                    override it.
+                    Extracted from the video when it is published or replaced.
+                    Upload one here to override it.
                   </Text>
                 </>
               )}
@@ -331,8 +333,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         </Card>
 
         {/* Deck audio and video are independent — a deck can have either, both
-            or neither, so this field shows for every deck. Video itself can't
-            be changed here — it has to go back through the transcoder. */}
+            or neither, so both sections show for every deck. */}
         {uploadBasePath && (
           <Card style={styles.card}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -357,6 +358,37 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
               {MIN_DECK_AUDIO_DURATION_MS / 1000} seconds to{" "}
               {MAX_DECK_AUDIO_DURATION_MS / 1000 / 60} minutes, max 60 MB.
             </Text>
+          </Card>
+        )}
+
+        {/* Video is not saved with the form: it goes through the transcoder as
+            its own job, so the field starts and tracks that itself. Staged in
+            the same per-admin slot as the audio — the endpoint accepts no
+            other prefix. */}
+        {uploadBasePath && (
+          <Card style={styles.card}>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              Video
+            </Text>
+            <DeckVideoReplaceField
+              deckId={deckId}
+              // ?? false covers an API deployed before the flag existed.
+              hasVideo={deck.hasVideo ?? false}
+              firstVideoFrameUrl={deck.firstVideoFrameUrl}
+              buildGcsPath={(filename) =>
+                platformDeckVideoPath(uploadBasePath, filename)
+              }
+              onReplaced={() => {
+                // hasVideo and the poster frame changed under the form; the
+                // seeded fields are left alone since they are keyed on load.
+                queryClient.invalidateQueries({
+                  queryKey: ["adminPlatformDeck", deckId],
+                });
+                queryClient.invalidateQueries({ queryKey: ["collection"] });
+                setSnackbar({ message: "Video is live", type: "success" });
+              }}
+              onError={(message) => setSnackbar({ message, type: "error" })}
+            />
           </Card>
         )}
 

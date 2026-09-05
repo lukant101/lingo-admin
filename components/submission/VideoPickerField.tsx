@@ -8,6 +8,8 @@ import type { MediaUpload } from "@/types/submission";
 
 type VideoPickerFieldProps = {
   media: MediaUpload | null;
+  /** Field label; null hides it, for a caller whose section heading already says so. */
+  label?: string | null;
   onVideoPicked: (
     uri: string,
     fileName: string,
@@ -35,6 +37,7 @@ function getDisplayName(media: MediaUpload): string {
 
 export function VideoPickerField({
   media,
+  label = "Video",
   onVideoPicked,
   onRemove,
   onClearError,
@@ -73,12 +76,14 @@ export function VideoPickerField({
 
   return (
     <View style={styles.container}>
-      <Text
-        variant="labelMedium"
-        style={{ color: theme.colors.onSurfaceVariant }}
-      >
-        Video
-      </Text>
+      {label != null && (
+        <Text
+          variant="labelMedium"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          {label}
+        </Text>
+      )}
 
       {hasVideo ? (
         <>

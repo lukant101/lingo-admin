@@ -136,6 +136,41 @@ export type PaginatedPlatformDecks = {
   pageSize: number;
 };
 
+export type PlatformDeckVideoReplacementStatus =
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+/**
+ * One attempt to replace (or add) a published deck's video. Video needs
+ * transcoding, so unlike the images and audio it is not a field on the deck
+ * PATCH: the admin stages the upload, the API runs a transcoder job into a
+ * fresh version directory, and the deck is only cut over once the output is
+ * verified — a failed attempt leaves the live video untouched.
+ */
+export type PlatformDeckVideoReplacement = {
+  id: string;
+  deckId: string;
+  status: PlatformDeckVideoReplacementStatus;
+  videoSourcePath: string;
+  targetVideoVersion: number;
+  previousVideoVersion: number;
+  errorCode: string | null;
+  createdAt: string;
+  completedAt: string | null;
+  failedAt: string | null;
+};
+
+export type PlatformDeckVideoStatus = {
+  deckId: string;
+  hasVideo: boolean;
+  videoVersion: number;
+  firstVideoFrameUrl: string | null;
+  /** Most recent attempt, or null if the deck's video has never been replaced. */
+  replacement: PlatformDeckVideoReplacement | null;
+};
+
 export type UpdatePlatformDeckInput = {
   title?: string;
   level?: DeckLevel;

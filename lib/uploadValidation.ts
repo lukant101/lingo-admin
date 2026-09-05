@@ -147,3 +147,65 @@ export function validateFile({
 
   return null;
 }
+
+type ValidateVideoMediaParams = {
+  fileSize: number | null;
+  mimeType: string | null;
+  fileName: string | null;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+};
+
+/**
+ * Everything a platform deck video is checked for before upload: format and
+ * size, then duration and dimensions where the picker reported them (the web
+ * picker often doesn't, and the transcoder is the authority anyway). Shared by
+ * the draft wizard and the published-deck editor so the two never disagree on
+ * what a valid video is. Returns an error message, or null if valid.
+ */
+export function validateVideoMedia({
+  fileSize,
+  mimeType,
+  fileName,
+  width,
+  height,
+  durationMs,
+}: ValidateVideoMediaParams): string | null {
+  const fileError = validateFile({
+    category: "video",
+    fileSize,
+    mimeType,
+    fileName,
+  });
+  if (fileError) return fileError;
+
+  if (durationMs != null) {
+    if (durationMs < MIN_VIDEO_DURATION_MS) {
+      return `Video too short (${(durationMs / 1000).toFixed(1)}s). Minimum is ${MIN_VIDEO_DURATION_MS / 1000} seconds.`;
+    }
+    if (durationMs > MAX_VIDEO_DURATION_MS) {
+      return `Video too long (${(durationMs / 1000).toFixed(0)}s). Maximum is ${MAX_VIDEO_DURATION_MS / 1000 / 60} minutes.`;
+    }
+  }
+
+  if (width != null && height != null) {
+    if (width * 16 !== height * 9) {
+      return `Video must be 9:16 vertical aspect ratio. Got ${width}x${height}.`;
+    }
+    if (
+      width < MIN_VIDEO_DIMENSIONS.width ||
+      height < MIN_VIDEO_DIMENSIONS.height
+    ) {
+      return `Video resolution too low (${width}x${height}). Minimum is ${MIN_VIDEO_DIMENSIONS.width}x${MIN_VIDEO_DIMENSIONS.height} pixels.`;
+    }
+    if (
+      width > MAX_VIDEO_DIMENSIONS.width ||
+      height > MAX_VIDEO_DIMENSIONS.height
+    ) {
+      return `Video resolution too high (${width}x${height}). Maximum is ${MAX_VIDEO_DIMENSIONS.width}x${MAX_VIDEO_DIMENSIONS.height} pixels.`;
+    }
+  }
+
+  return null;
+}
