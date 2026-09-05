@@ -1,9 +1,11 @@
-import { apiGet, apiPatch } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
 import type { DeckLevel } from "@/types/langs";
 import type {
   DeckCollectionMembership,
   DeckTagSummary,
   PaginatedPlatformDecks,
+  PlatformDeckVideoReplacement,
+  PlatformDeckVideoStatus,
   PlatformDeckWithCards,
   UpdatePlatformDeckInput,
 } from "@/types/deck";
@@ -67,4 +69,38 @@ export async function updatePlatformDeck(
     if (!payload.title) delete payload.title;
   }
   return apiPatch<PlatformDeckWithCards>(`/admin/decks/${deckId}`, payload);
+}
+
+/**
+ * Start replacing — or, on an audio-only deck, adding — the deck's video.
+ * `videoSourcePath` must be staged under the caller's own
+ * `platformDeckDrafts/{uid}/` prefix; the API confines admins to it. Returns
+ * 202 with the new attempt, which then has to be polled via
+ * getPlatformDeckVideoStatus — transcoding takes minutes. A second request
+ * while one is running is refused with `VIDEO_REPLACEMENT_IN_PROGRESS`.
+ */
+export async function replacePlatformDeckVideo(
+  deckId: string,
+  videoSourcePath: string
+): Promise<PlatformDeckVideoReplacement> {
+  return apiPost<PlatformDeckVideoReplacement>(`/admin/decks/${deckId}/video`, {
+    videoSourcePath,
+  });
+}
+
+export async function getPlatformDeckVideoStatus(
+  deckId: string
+): Promise<PlatformDeckVideoStatus> {
+  return apiGet<PlatformDeckVideoStatus>(`/admin/decks/${deckId}/video`);
+}
+
+/**
+ * Abandon an in-flight replacement. Only releases the lock — the deck and its
+ * current video are untouched, and the staged upload is left in place for a
+ * retry. 404 `NO_VIDEO_REPLACEMENT_IN_PROGRESS` if nothing is running.
+ */
+export async function cancelPlatformDeckVideoReplacement(
+  deckId: string
+): Promise<void> {
+  await apiDelete<void>(`/admin/decks/${deckId}/video/replacement`);
 }

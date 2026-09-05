@@ -224,6 +224,20 @@ export function platformDeckFirstFramePath(
   return `${uploadBasePath}/images/first_frame_${randomId()}.${ext}`;
 }
 
+/**
+ * Build a staging path for a video added to or replaced on a published deck.
+ * Mirrors adminVideoPath so it lands under the draft prefix's `video/` folder,
+ * which is the one slot POST /admin/decks/:id/video accepts; the transcoder
+ * reads it from there.
+ */
+export function platformDeckVideoPath(
+  uploadBasePath: string,
+  filename: string
+): string {
+  const ext = filename.split(".").pop() ?? "mp4";
+  return `${uploadBasePath}/video/${randomId()}.${ext}`;
+}
+
 export function gameCoverImagePath(
   uploadBasePath: string,
   filename: string

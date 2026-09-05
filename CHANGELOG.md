@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-09-05
+
+### Added
+
+- A published deck can now be given a video, or have its video replaced, from the deck
+  editor. The editor could already swap both covers, the deck audio and the poster frame,
+  but video was the one medium it refused to touch — its own comment said it "has to go
+  back through the transcoder", so an audio-only deck stayed audio-only for good, and
+  fixing a bad video meant deleting the deck and republishing it under a new id, which
+  broke saved decks, feeds and collection membership. The API has served
+  `POST /admin/decks/:id/video` for exactly this since 0.4.8; nothing called it. The new
+  Video section picks a file, checks it the way the draft wizard does (9:16 vertical,
+  720x1280 to 1080x1920, 10 seconds to 5 minutes, MP4 or MOV, 500 MB), uploads it to the
+  same per-admin staging slot the audio uses, and starts the replacement with its own
+  button rather than riding on Save changes — the form's save has nothing to carry, since
+  the API runs the transcode as a job and only cuts the deck over once the new rendition is
+  verified. The section then polls that job, keeps polling in a background tab, offers to
+  cancel a stuck one, and reports the outcome; the deck keeps its current video (or stays
+  audio-only) until the new one is live, so a failed attempt costs nothing but time. A
+  replacement still running from an earlier visit is picked up on reopening the deck, and
+  one that failed before is shown rather than silently forgotten. A deck that has a video
+  says so in words and shows its poster frame, since the video itself is only reachable
+  through a signed CDN manifest and the editor has no player; the internal rendition
+  version is deliberately not shown, as it reads like a choice rather than a counter.
+  The wizard's video checks moved into a shared `validateVideoMedia` so the two flows
+  cannot drift apart. Needs an API at 0.4.8 or later, which is what serves
+  `/admin/decks/:id/video`; against an older one the section reports that it cannot
+  read the video status and a replacement fails to start rather than silently doing
+  nothing. Note for local development: the API learns that a transcode finished only
+  from a Pub/Sub webhook, which a laptop cannot receive, so against a local API the
+  section stays on "Transcoding…" until that webhook is routed in (ngrok, see the API's
+  `docs/local-dev-setup.md`) or delivered by hand
+
 ## [0.2.6] - 2026-08-18
 
 Card editing needs the matching API release deployed first — see the note on the first

@@ -38,13 +38,10 @@ import {
   FILE_LIMITS,
   MAX_AUDIO_DURATION_MS,
   MAX_DECK_AUDIO_DURATION_MS,
-  MAX_VIDEO_DIMENSIONS,
-  MAX_VIDEO_DURATION_MS,
   MIN_AUDIO_DURATION_MS,
   MIN_DECK_AUDIO_DURATION_MS,
-  MIN_VIDEO_DIMENSIONS,
-  MIN_VIDEO_DURATION_MS,
   validateFile,
+  validateVideoMedia,
 } from "@/lib/uploadValidation";
 import type {
   PlatformDeckDraftCard,
@@ -686,11 +683,13 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
   ) => {
     if (!draft) return;
 
-    const error = validateFile({
-      category: "video",
+    const error = validateVideoMedia({
       fileSize,
       mimeType,
       fileName,
+      width,
+      height,
+      durationMs,
     });
     if (error) {
       dispatch({
@@ -705,88 +704,6 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         },
       });
       return;
-    }
-
-    if (durationMs != null) {
-      if (durationMs < MIN_VIDEO_DURATION_MS) {
-        dispatch({
-          type: "SET_VIDEO",
-          media: {
-            uri: "",
-            gcsPath: null,
-            fileName,
-            progress: 0,
-            isUploading: false,
-            error: `Video too short (${(durationMs / 1000).toFixed(1)}s). Minimum is ${MIN_VIDEO_DURATION_MS / 1000} seconds.`,
-          },
-        });
-        return;
-      }
-      if (durationMs > MAX_VIDEO_DURATION_MS) {
-        dispatch({
-          type: "SET_VIDEO",
-          media: {
-            uri: "",
-            gcsPath: null,
-            fileName,
-            progress: 0,
-            isUploading: false,
-            error: `Video too long (${(durationMs / 1000).toFixed(0)}s). Maximum is ${MAX_VIDEO_DURATION_MS / 1000 / 60} minutes.`,
-          },
-        });
-        return;
-      }
-    }
-
-    if (width != null && height != null) {
-      if (width * 16 !== height * 9) {
-        dispatch({
-          type: "SET_VIDEO",
-          media: {
-            uri: "",
-            gcsPath: null,
-            fileName,
-            progress: 0,
-            isUploading: false,
-            error: `Video must be 9:16 vertical aspect ratio. Got ${width}x${height}.`,
-          },
-        });
-        return;
-      }
-      if (
-        width < MIN_VIDEO_DIMENSIONS.width ||
-        height < MIN_VIDEO_DIMENSIONS.height
-      ) {
-        dispatch({
-          type: "SET_VIDEO",
-          media: {
-            uri: "",
-            gcsPath: null,
-            fileName,
-            progress: 0,
-            isUploading: false,
-            error: `Video resolution too low (${width}x${height}). Minimum is ${MIN_VIDEO_DIMENSIONS.width}x${MIN_VIDEO_DIMENSIONS.height} pixels.`,
-          },
-        });
-        return;
-      }
-      if (
-        width > MAX_VIDEO_DIMENSIONS.width ||
-        height > MAX_VIDEO_DIMENSIONS.height
-      ) {
-        dispatch({
-          type: "SET_VIDEO",
-          media: {
-            uri: "",
-            gcsPath: null,
-            fileName,
-            progress: 0,
-            isUploading: false,
-            error: `Video resolution too high (${width}x${height}). Maximum is ${MAX_VIDEO_DIMENSIONS.width}x${MAX_VIDEO_DIMENSIONS.height} pixels.`,
-          },
-        });
-        return;
-      }
     }
 
     const gcsPath = adminVideoPath(draft.uploadBasePath, fileName);
