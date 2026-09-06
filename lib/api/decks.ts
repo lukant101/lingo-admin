@@ -14,6 +14,7 @@ export type ListPlatformDecksQuery = {
   langVariantCode?: string;
   level?: DeckLevel;
   forKids?: boolean;
+  isPremium?: boolean;
   /** Case-insensitive substring match on the deck title. */
   search?: string;
   page?: number;
@@ -27,6 +28,7 @@ export async function listPlatformDecks(
   if (query.langVariantCode) params.langVariantCode = query.langVariantCode;
   if (query.level) params.level = query.level;
   if (query.forKids != null) params.forKids = String(query.forKids);
+  if (query.isPremium != null) params.isPremium = String(query.isPremium);
   if (query.search?.trim()) params.search = query.search.trim();
   if (query.page != null) params.page = String(query.page);
   if (query.pageSize != null) params.pageSize = String(query.pageSize);
