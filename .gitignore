@@ -43,3 +43,5 @@ yarn-error.*
 temp/
 
 docs/test-users.md
+# Firebase Hosting deploy cache
+.firebase/
