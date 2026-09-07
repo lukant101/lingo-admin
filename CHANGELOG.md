@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-09-06
+
+### Added
+
+- A "Plus only" switch on the platform deck form, next to "For kids", and in the
+  deck list a tier filter (free and Plus / Plus only / free only) and a "Plus"
+  badge on flagged decks. A deck marked Plus only is hidden from learners without
+  the Plus subscription — absent from their feed, their playlist and their saved
+  list — and shown in full to subscribers. Pairs with the API's `is_premium`
+  (0.10.0). Nothing changes until a deck is flagged, and no deck should be
+  flagged until app 3.1 is widely installed: an older app cannot tell a premium
+  deck from a free one.
+
 ## [0.2.7] - 2026-09-05
 
 ### Added
