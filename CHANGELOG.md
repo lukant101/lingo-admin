@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2026-09-07
+
+### Added
+
+- The "Plus only" switch is now on the deck creation wizard too, on the Review &
+  Publish step under Tags, so a deck can be marked subscribers-only while it is
+  being authored. Until now the tier could only be set after the fact: the
+  wizard publishes through a draft, the draft carried no tier, and so every new
+  deck went live free and had to be switched over in the deck editor afterwards.
+  The switch saves to the draft as you toggle it, the same way tags do, and
+  publishing carries it onto the deck. Needs API 0.13.0, which added
+  `is_premium` to the draft.
+
+### Fixed
+
+- The version on the settings screen. `app.json` was missed when 0.2.8 was cut,
+  so the live app reported 0.2.7 while serving the 0.2.8 build; the three
+  version files are back in step.
+
 ## [0.2.8] - 2026-09-06
 
 ### Added
