@@ -90,6 +90,11 @@ export type PlatformDeck = {
   /** Free-form topical labels, lowercase, sorted alphabetically. */
   tags: string[];
   /**
+   * Subscribers-only. Hidden from every other learner rather than previewed.
+   * Undefined against an API deployed before the field existed.
+   */
+  isPremium?: boolean;
+  /**
    * Groups the sibling decks of a deck set — the same content authored as ~40
    * decks, one per language. Non-null means this deck is in a set, and so has
    * no translations of its own: a learner's translation is the sibling deck's
@@ -175,6 +180,7 @@ export type UpdatePlatformDeckInput = {
   title?: string;
   level?: DeckLevel;
   forKids?: boolean;
+  isPremium?: boolean;
   url?: string;
   amazonMusic?: string;
   appleMusic?: string;

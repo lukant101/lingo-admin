@@ -30,12 +30,19 @@ const KIDS_FILTER_OPTIONS = [
   { label: "Kids only", value: "kids" },
 ];
 
+const PLUS_FILTER_OPTIONS = [
+  { label: "Free and Plus", value: "all" },
+  { label: "Plus only", value: "plus" },
+  { label: "Free only", value: "free" },
+];
+
 export default function DecksLandingScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { lang, setLang } = useSelectedLanguage();
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [kidsFilter, setKidsFilter] = useState<string>("all");
+  const [plusFilter, setPlusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -56,6 +63,7 @@ export default function DecksLandingScreen() {
       page,
       levelFilter,
       kidsFilter,
+      plusFilter,
       debouncedSearch,
     ],
     queryFn: () =>
@@ -65,6 +73,7 @@ export default function DecksLandingScreen() {
         pageSize: PAGE_SIZE,
         level: levelFilter === "all" ? undefined : (levelFilter as DeckLevel),
         forKids: kidsFilter === "kids" ? true : undefined,
+        isPremium: plusFilter === "all" ? undefined : plusFilter === "plus",
         search: debouncedSearch,
       }),
     enabled: !!lang,
@@ -118,6 +127,16 @@ export default function DecksLandingScreen() {
           value={kidsFilter}
           onValueChange={(value) => {
             setKidsFilter(value);
+            setPage(1);
+          }}
+          containerStyle={styles.filter}
+        />
+        <Select
+          label="Tier"
+          options={PLUS_FILTER_OPTIONS}
+          value={plusFilter}
+          onValueChange={(value) => {
+            setPlusFilter(value);
             setPage(1);
           }}
           containerStyle={styles.filter}
@@ -196,6 +215,7 @@ function DeckRow({
   const theme = useTheme();
   const meta = [deck.level, `${deck.cardCount} cards`];
   if (deck.forKids) meta.push("kids");
+  if (deck.isPremium) meta.push("Plus");
   if (deck.hasVideo) meta.push("video");
   if (deck.audioUrl) meta.push("audio");
 

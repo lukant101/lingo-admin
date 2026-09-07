@@ -44,6 +44,7 @@ type DeckFields = {
   title: string;
   level: DeckLevel;
   forKids: boolean;
+  isPremium: boolean;
   tags: string[];
   url: string;
   spotify: string;
@@ -92,6 +93,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
       title: deck.title,
       level: deck.level,
       forKids: deck.forKids,
+      isPremium: deck.isPremium ?? false,
       // ?? [] covers an API deployed before tags existed — the web app ships
       // independently of it.
       tags: deck.tags ?? [],
@@ -130,6 +132,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         title: fields.title.trim(),
         level: fields.level,
         forKids: fields.forKids,
+        isPremium: fields.isPremium,
         tags: fields.tags,
         url: fields.url.trim(),
         spotify: fields.spotify.trim(),
@@ -241,6 +244,15 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
             <Switch
               value={fields.forKids}
               onValueChange={(value) => setField("forKids", value)}
+            />
+          </View>
+          {/* Hidden from non-subscribers, not previewed: off their feed and
+              playlist entirely. Studio decks have their own gate. */}
+          <View style={styles.switchRow}>
+            <Text variant="bodyMedium">Plus only</Text>
+            <Switch
+              value={fields.isPremium}
+              onValueChange={(value) => setField("isPremium", value)}
             />
           </View>
         </Card>
