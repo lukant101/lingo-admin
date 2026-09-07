@@ -60,7 +60,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Switch, Text, useTheme } from "react-native-paper";
 
 // Step 1 = Collection (set by /new screen, always complete in the wizard)
 type WizardStep = 2 | 3 | 4 | 5;
@@ -75,6 +75,7 @@ type PlatformDeckWizardProps = {
 type EditState = {
   title: string;
   tags: string[];
+  isPremium: boolean;
   cards: CardDraft[];
   coverHorizontal: MediaUpload | null;
   coverVertical: MediaUpload | null;
@@ -89,6 +90,7 @@ type EditState = {
 type EditAction =
   | { type: "SET_TITLE"; title: string }
   | { type: "SET_TAGS"; tags: string[] }
+  | { type: "SET_IS_PREMIUM"; isPremium: boolean }
   | { type: "SET_CARDS"; cards: CardDraft[] }
   | { type: "UPDATE_CARD"; index: number; card: Partial<CardDraft> }
   | { type: "ADD_CARD" }
@@ -123,6 +125,8 @@ function editReducer(state: EditState, action: EditAction): EditState {
       return { ...state, title: action.title, error: null };
     case "SET_TAGS":
       return { ...state, tags: action.tags, error: null };
+    case "SET_IS_PREMIUM":
+      return { ...state, isPremium: action.isPremium, error: null };
     case "SET_CARDS":
       return { ...state, cards: action.cards, error: null };
     case "UPDATE_CARD": {
@@ -169,6 +173,7 @@ function createInitialState(): EditState {
   return {
     title: "",
     tags: [],
+    isPremium: false,
     cards: [createEmptyCard()],
     coverHorizontal: null,
     coverVertical: null,
@@ -259,6 +264,9 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
       const patch: Partial<EditState> = {
         title: draft.title,
         tags: draft.tags ?? [],
+        // ?? false covers an API deployed before the tier existed — the web
+        // app ships independently of it.
+        isPremium: draft.isPremium ?? false,
         cards,
         currentStep: determineInitialStep(draft),
       };
@@ -932,6 +940,22 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     }
   };
 
+  // Saved on toggle for the same reason tags are saved per chip: it is a
+  // discrete choice, and the draft is what carries it through to publish.
+  const handleIsPremiumChange = async (isPremium: boolean) => {
+    dispatch({ type: "SET_IS_PREMIUM", isPremium });
+    try {
+      await patchDraft({ isPremium });
+    } catch (err) {
+      // Put the switch back where the server still has it.
+      dispatch({ type: "SET_IS_PREMIUM", isPremium: !isPremium });
+      dispatch({
+        type: "SET_ERROR",
+        error: (err as Error).message || "Failed to save the deck tier",
+      });
+    }
+  };
+
   const handleCardTextBlur = async (cardIndex: number) => {
     if (!draft) return;
     const card = state.cards[cardIndex];
@@ -1242,6 +1266,22 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
             </Text>
             <TagEditor tags={state.tags} onChange={handleTagsChange} />
             <View style={styles.tagsSpacer} />
+            <View style={styles.premiumRow}>
+              <View style={styles.premiumLabel}>
+                <Text variant="bodyMedium">Plus only</Text>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  Hidden from learners without the subscription rather than
+                  previewed to them.
+                </Text>
+              </View>
+              <Switch
+                value={state.isPremium}
+                onValueChange={handleIsPremiumChange}
+              />
+            </View>
             <View style={styles.summaryRow}>
               <Text
                 variant="bodyMedium"
@@ -1409,6 +1449,17 @@ const styles = StyleSheet.create({
   },
   tagsSpacer: {
     height: 16,
+  },
+  premiumRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    marginBottom: 16,
+  },
+  premiumLabel: {
+    flex: 1,
+    gap: 2,
   },
   errorContainer: {
     paddingHorizontal: 16,

@@ -106,6 +106,8 @@ export async function listPlatformDeckDrafts(
 
 export type UpdatePlatformDeckDraftInput = {
   title?: string;
+  /** Subscribers-only; applied to the deck on publish. */
+  isPremium?: boolean;
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;
   videoSourcePath?: string | null;

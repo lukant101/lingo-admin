@@ -19,6 +19,12 @@ export type PlatformDeckDraftResponse = {
   langId: string;
   level: DeckLevel;
   forKids: boolean;
+  /**
+   * Subscribers-only, carried into the deck's isPremium on publish. Unlike
+   * level/forKids it is not inherited from the collection — the author sets it
+   * while authoring. Undefined against an API deployed before the field.
+   */
+  isPremium?: boolean;
   status: PlatformDeckDraftStatus;
   uploadBasePath: string;
   horizontalImageSourcePath: string | null;
