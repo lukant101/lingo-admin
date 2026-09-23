@@ -7,7 +7,11 @@ import {
   getCollection,
   listPlatformDeckDrafts,
 } from "@/lib/api/platformDecks";
-import { DIALOG_MAX_WIDTH } from "@/lib/constants";
+import {
+  DECK_SORT_ORDER_HINT,
+  DECK_SORT_ORDER_UNPLACED,
+  DIALOG_MAX_WIDTH,
+} from "@/lib/constants";
 import type { CollectionDeckItem } from "@/types/collection";
 import type {
   PlatformDeckDraftResponse,
@@ -81,7 +85,13 @@ export default function CollectionDetailScreen() {
 
   const sortedDecks = useMemo(() => {
     if (!data?.decks) return [];
-    return [...data.decks].sort((a, b) => a.sortOrder - b.sortOrder);
+    // Mirror the learner feed: deck sort order ascending, ties by id.
+    return [...data.decks].sort(
+      (a, b) =>
+        (a.deckSortOrder ?? DECK_SORT_ORDER_UNPLACED) -
+          (b.deckSortOrder ?? DECK_SORT_ORDER_UNPLACED) ||
+        a.deckId.localeCompare(b.deckId)
+    );
   }, [data?.decks]);
 
   const inFlightDrafts = useMemo(() => {
@@ -154,12 +164,20 @@ export default function CollectionDetailScreen() {
               </>
             )}
 
-            <Text
-              variant="titleSmall"
-              style={{ color: theme.colors.onSurfaceVariant }}
-            >
-              Decks
-            </Text>
+            <View style={styles.header}>
+              <Text
+                variant="titleSmall"
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                Decks
+              </Text>
+              <Text
+                variant="bodySmall"
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                {DECK_SORT_ORDER_HINT}
+              </Text>
+            </View>
 
             {sortedDecks.length === 0 ? (
               <Card>
@@ -337,7 +355,7 @@ function DeckRow({ deck }: { deck: CollectionDeckItem }) {
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              sort order: {deck.sortOrder}
+              sort order: {deck.deckSortOrder ?? "—"}
             </Text>
           </View>
           <View style={styles.statusCell}>

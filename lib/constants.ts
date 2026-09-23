@@ -30,6 +30,12 @@ export const isValidLevel = (level: string): boolean => {
 
 export const DIALOG_MAX_WIDTH = 560;
 
+/** The API's "not yet placed" deck sort order — sorts a deck after every other. */
+export const DECK_SORT_ORDER_UNPLACED = 999_999_999;
+
+export const DECK_SORT_ORDER_HINT =
+  "Learners see decks in ascending sort order, from 1 to 999999999: lower numbers are shown first, and 999999999 puts a deck at the end.";
+
 /**
  * API base URL - should be configured per environment
  */

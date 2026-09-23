@@ -149,7 +149,7 @@ export async function deletePlatformDeckDraft(draftId: string): Promise<void> {
 export async function updateCollectionDeck(
   collectionId: string,
   deckId: string,
-  input: { published?: boolean; sortOrder?: number }
+  input: { sortOrder?: number }
 ): Promise<CollectionDeckResponse> {
   return apiPatch<CollectionDeckResponse>(
     `/admin/collections/${collectionId}/decks/${deckId}`,
@@ -159,7 +159,7 @@ export async function updateCollectionDeck(
 
 export async function addDeckToCollection(
   collectionId: string,
-  input: { deckId: string; sortOrder: number; published: boolean }
+  input: { deckId: string; sortOrder?: number }
 ): Promise<{ added: true }> {
   return apiPost<{ added: true }>(
     `/admin/collections/${collectionId}/decks`,
