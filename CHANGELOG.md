@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.10] - 2026-09-22
+
+### Fixed
+
+- Adding a deck to a collection works again. The API stopped storing a
+  published flag per deck-in-collection. Visibility now lives on the deck and
+  on the collection. The API rejects fields it doesn't recognise, so every
+  "Add to collection" request, and every flip of the per-collection Published
+  switch, failed with a 400. The add now sends only the deck. The broken switch
+  is gone, and each row shows the collection's own status (published or
+  hidden) instead.
+
+### Changed
+
+- Decks show their own sort order, the value the learner feed orders by,
+  instead of their position inside a collection, which learners never see. The
+  collection page lists each deck's sort order and orders decks the way the
+  feed does. The deck editor's Collections card shows the deck's sort order
+  once, in place of an editable Order field on every collection. Both places
+  explain that decks are sorted from 1 to 999999999, lower first, and that
+  999999999 puts a deck at the end. The collection page needs API 0.14.1 for
+  the sort order; against an older API it shows "—".
+
 ## [0.2.9] - 2026-09-07
 
 ### Added

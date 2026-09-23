@@ -405,7 +405,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         )}
 
         {/* Collection membership carries the learner-visibility gate: a deck in
-            collections is hidden unless at least one inclusion is published. */}
+            collections is hidden unless at least one of them is published. */}
         <CollectionMembershipList deckId={deckId} level={fields.level} />
 
         <Card style={styles.card}>

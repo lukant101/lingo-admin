@@ -74,6 +74,8 @@ export type PlatformDeck = {
   langVariantId: string;
   /** Human-usable variant code (e.g. "en-ca"); the id alone isn't displayable. */
   langVariantCode: string;
+  /** Place in the learner-facing ordering; smaller shows first. */
+  sortOrder: number;
   horizontalImageUrl: string;
   verticalImageUrl: string;
   /** Reliable "has a video" signal — previewVideoUrl is never set for platform decks. */
@@ -130,6 +132,7 @@ export type DeckCollectionMembership = {
   langVariantCode: string;
   forKids: boolean;
   mature: boolean;
+  /** The collection's own visibility flag, not anything per inclusion. */
   published: boolean;
   sortOrder: number;
 };

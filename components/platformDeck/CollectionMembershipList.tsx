@@ -1,7 +1,6 @@
 import { CollectionPicker } from "@/components/platformDeck/CollectionPicker";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
 import {
   StyledSnackbar,
   type SnackbarState,
@@ -10,23 +9,15 @@ import { getPlatformDeck, listPlatformDeckCollections } from "@/lib/api/decks";
 import {
   addDeckToCollection,
   removeDeckFromCollection,
-  updateCollectionDeck,
 } from "@/lib/api/platformDecks";
-import { DIALOG_MAX_WIDTH } from "@/lib/constants";
+import { DECK_SORT_ORDER_HINT, DIALOG_MAX_WIDTH } from "@/lib/constants";
 import type { CollectionResponse } from "@/types/collection";
 import type { DeckCollectionMembership } from "@/types/deck";
 import type { DeckLevel } from "@/types/langs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import {
-  Dialog,
-  IconButton,
-  Portal,
-  Switch,
-  Text,
-  useTheme,
-} from "react-native-paper";
+import { Dialog, IconButton, Portal, Text, useTheme } from "react-native-paper";
 
 type Membership = DeckCollectionMembership;
 
@@ -50,13 +41,14 @@ export function CollectionMembershipList({
     queryFn: () => listPlatformDeckCollections(deckId),
   });
   // Shares the deck editor's query key, so this is deduped there and costs one
-  // request on the draft screens. Only the immutable variant code is needed.
+  // request on the draft screens. Only the immutable variant code, the level
+  // and the sort order are needed.
   const { data: deck } = useQuery({
     queryKey: ["adminPlatformDeck", deckId],
     queryFn: () => getPlatformDeck(deckId),
   });
-  // Mutations below update rows optimistically, so the fetched list seeds local
-  // state rather than driving the render directly.
+  // Removal updates rows optimistically, so the fetched list seeds local state
+  // rather than driving the render directly.
   const [memberships, setMemberships] = useState<Membership[]>([]);
   useEffect(() => {
     if (data) setMemberships(data);
@@ -67,56 +59,6 @@ export function CollectionMembershipList({
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
-
-  const setMembership = (idx: number, patch: Partial<Membership>) => {
-    setMemberships((prev) => {
-      const next = [...prev];
-      next[idx] = { ...next[idx], ...patch };
-      return next;
-    });
-  };
-
-  const handleTogglePublished = async (idx: number, value: boolean) => {
-    const membership = memberships[idx];
-    setMembership(idx, { published: value });
-    setBusy(membership.collectionId);
-    try {
-      await updateCollectionDeck(membership.collectionId, deckId, {
-        published: value,
-      });
-      setSnackbar({
-        message: value ? "Deck is now discoverable" : "Deck hidden",
-        type: "success",
-      });
-    } catch (err) {
-      // revert on failure
-      setMembership(idx, { published: !value });
-      setSnackbar({
-        message: (err as Error).message || "Failed to update visibility",
-        type: "error",
-      });
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const handleSortOrderBlur = async (idx: number) => {
-    const membership = memberships[idx];
-    setBusy(membership.collectionId);
-    try {
-      await updateCollectionDeck(membership.collectionId, deckId, {
-        sortOrder: membership.sortOrder,
-      });
-      setSnackbar({ message: "Sort order saved", type: "success" });
-    } catch (err) {
-      setSnackbar({
-        message: (err as Error).message || "Failed to save sort order",
-        type: "error",
-      });
-    } finally {
-      setBusy(null);
-    }
-  };
 
   const handleRemove = async (idx: number) => {
     const membership = memberships[idx];
@@ -147,11 +89,7 @@ export function CollectionMembershipList({
     }
     setBusy(pickerValue.id);
     try {
-      await addDeckToCollection(pickerValue.id, {
-        deckId,
-        sortOrder: 0,
-        published: true,
-      });
+      await addDeckToCollection(pickerValue.id, { deckId });
       // Refetch rather than construct the row locally: the picker's collection
       // has no langVariantCode, and the server owns the inclusion defaults.
       await queryClient.invalidateQueries({
@@ -174,9 +112,15 @@ export function CollectionMembershipList({
     <Card>
       <Text
         variant="titleMedium"
-        style={{ color: theme.colors.onSurface, marginBottom: 12 }}
+        style={{ color: theme.colors.onSurface, marginBottom: 4 }}
       >
         Collections
+      </Text>
+      <Text
+        variant="bodySmall"
+        style={{ color: theme.colors.onSurfaceVariant, marginBottom: 12 }}
+      >
+        Deck sort order: {deck?.sortOrder ?? "—"}. {DECK_SORT_ORDER_HINT}
       </Text>
       {isLoading ? (
         <Text
@@ -211,34 +155,12 @@ export function CollectionMembershipList({
                 </Text>
               </View>
               <View style={styles.controls}>
-                <View style={styles.publishedCell}>
-                  <Text
-                    variant="labelSmall"
-                    style={{ color: theme.colors.onSurfaceVariant }}
-                  >
-                    Published
-                  </Text>
-                  <Switch
-                    value={m.published}
-                    onValueChange={(v) => handleTogglePublished(i, v)}
-                    disabled={busy === m.collectionId}
-                  />
-                </View>
-                <View style={styles.sortCell}>
-                  <Input
-                    label="Order"
-                    value={String(m.sortOrder)}
-                    keyboardType="numeric"
-                    onChangeText={(text) => {
-                      const n = parseInt(text, 10);
-                      setMembership(i, {
-                        sortOrder: Number.isFinite(n) ? n : 0,
-                      });
-                    }}
-                    onBlur={() => handleSortOrderBlur(i)}
-                    containerStyle={styles.sortInput}
-                  />
-                </View>
+                <Text
+                  variant="labelSmall"
+                  style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                  {m.published ? "Collection published" : "Collection hidden"}
+                </Text>
                 <IconButton
                   icon="delete"
                   size={20}
@@ -313,17 +235,8 @@ const styles = StyleSheet.create({
   },
   controls: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  publishedCell: {
     alignItems: "center",
-  },
-  sortCell: {
-    width: 72,
-  },
-  sortInput: {
-    marginBottom: 0,
+    gap: 8,
   },
   dialog: {
     maxWidth: DIALOG_MAX_WIDTH,
