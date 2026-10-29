@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.11] - 2026-10-29
+
+### Fixed
+
+- Brazilian Portuguese decks show up on the Decks tab under Portuguese. When
+  `pt-br` was folded into Portuguese as a variant, the language picker stopped
+  offering it, and the tab only ever matched the exact variant the picker
+  returned, so every Brazilian deck was out of reach. The tab now sends the
+  picker's code as `langCode`: a bare language like Portuguese lists all its
+  variants, while a variant the picker does offer (Spanish (Latin America),
+  English (Canadian)) still lists only its own decks. Needs API 0.29.1.
+
 ## [0.2.10] - 2026-09-22
 
 ### Fixed
