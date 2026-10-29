@@ -11,7 +11,11 @@ import type {
 } from "@/types/deck";
 
 export type ListPlatformDecksQuery = {
-  langVariantCode?: string;
+  /**
+   * The language picker's code. A variant the picker offers matches exactly; a
+   * bare language matches all its variants, so `pt` includes `pt-br` decks.
+   */
+  langCode?: string;
   level?: DeckLevel;
   forKids?: boolean;
   /** Case-insensitive substring match on the deck title. */
@@ -24,7 +28,7 @@ export async function listPlatformDecks(
   query: ListPlatformDecksQuery = {}
 ): Promise<PaginatedPlatformDecks> {
   const params: Record<string, string> = {};
-  if (query.langVariantCode) params.langVariantCode = query.langVariantCode;
+  if (query.langCode) params.langCode = query.langCode;
   if (query.level) params.level = query.level;
   if (query.forKids != null) params.forKids = String(query.forKids);
   if (query.search?.trim()) params.search = query.search.trim();

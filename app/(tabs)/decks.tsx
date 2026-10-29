@@ -60,7 +60,7 @@ export default function DecksLandingScreen() {
     ],
     queryFn: () =>
       listPlatformDecks({
-        langVariantCode: lang!.code,
+        langCode: lang!.code,
         page,
         pageSize: PAGE_SIZE,
         level: levelFilter === "all" ? undefined : (levelFilter as DeckLevel),
