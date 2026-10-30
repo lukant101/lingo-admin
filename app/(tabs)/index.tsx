@@ -105,6 +105,7 @@ function CollectionRow({ collection }: { collection: CollectionResponse }) {
   const tags: string[] = [collection.level];
   if (collection.forKids) tags.push("kids");
   if (collection.mature) tags.push("mature");
+  if (collection.isSeries) tags.push("series");
 
   return (
     <Pressable
@@ -157,7 +158,9 @@ function NewCollectionDialog({
   const mutation = useMutation({
     mutationFn: createCollection,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["collections", "byLang", lang.code] });
+      queryClient.invalidateQueries({
+        queryKey: ["collections", "byLang", lang.code],
+      });
       reset();
       onDismiss();
     },
@@ -166,8 +169,7 @@ function NewCollectionDialog({
     },
   });
 
-  const canCreate =
-    title.trim().length > 0 && !!level && !mutation.isPending;
+  const canCreate = title.trim().length > 0 && !!level && !mutation.isPending;
 
   const handleDismiss = () => {
     if (mutation.isPending) return;
@@ -177,11 +179,7 @@ function NewCollectionDialog({
 
   return (
     <Portal>
-      <Dialog
-        visible={visible}
-        onDismiss={handleDismiss}
-        style={styles.dialog}
-      >
+      <Dialog visible={visible} onDismiss={handleDismiss} style={styles.dialog}>
         <Dialog.Title>New collection</Dialog.Title>
         <Dialog.ScrollArea>
           <ScrollView>
@@ -238,10 +236,7 @@ function NewCollectionDialog({
               </View>
 
               {error && (
-                <Text
-                  variant="bodySmall"
-                  style={{ color: theme.colors.error }}
-                >
+                <Text variant="bodySmall" style={{ color: theme.colors.error }}>
                   {error}
                 </Text>
               )}

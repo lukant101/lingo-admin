@@ -10,6 +10,12 @@ export type CollectionResponse = {
   mature: boolean;
   /** Learner visibility for the whole collection. */
   published: boolean;
+  /**
+   * Read in order, like the chapters of a book: the learner feed shows only
+   * the first published deck, and the rest are served from it, in the
+   * collection's own order. Needs API 0.30.0.
+   */
+  isSeries: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -31,7 +37,10 @@ export type CollectionDeckResponse = {
 
 export type CollectionDeckItem = {
   deckId: string;
-  /** Position within this collection. Not used by the learner feed. */
+  /**
+   * Position within this collection. Only a series reads it — as the first
+   * key of its order, ahead of `deckSortOrder` — and the feed does not.
+   */
   sortOrder: number;
   /**
    * The deck's own sort order — what the learner feed orders by. Undefined

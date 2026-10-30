@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A collection can be made a series, from a switch on its screen, behind a
+  confirmation. A series is read in order: learners see only its first
+  published deck in their feed and read the rest from it. Its decks are listed
+  as numbered chapters in that order, with the deck the feed shows marked, and
+  arrows move a deck up or down. Collections that are series are tagged
+  "series" in the list. Needs API 0.30.0.
+
 ## [0.2.11] - 2026-10-29
 
 ### Fixed
