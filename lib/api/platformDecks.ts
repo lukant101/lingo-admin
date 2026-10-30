@@ -63,6 +63,20 @@ export async function getCollection(
   );
 }
 
+export type UpdateCollectionInput = {
+  isSeries?: boolean;
+};
+
+export async function updateCollection(
+  collectionId: string,
+  input: UpdateCollectionInput
+): Promise<CollectionResponse> {
+  return apiPatch<CollectionResponse>(
+    `/admin/collections/${collectionId}`,
+    input as Record<string, unknown>
+  );
+}
+
 // --- Platform-deck drafts ---
 
 export async function createPlatformDeckDraft(input: {
