@@ -184,6 +184,8 @@ export type UpdatePlatformDeckInput = {
   level?: DeckLevel;
   forKids?: boolean;
   isPremium?: boolean;
+  /** Place in the learner feed, ascending within the deck's level. */
+  sortOrder?: number;
   url?: string;
   amazonMusic?: string;
   appleMusic?: string;
