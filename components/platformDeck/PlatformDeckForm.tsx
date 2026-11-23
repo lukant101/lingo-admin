@@ -21,7 +21,12 @@ import {
 } from "@/components/ui/StyledSnackbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPlatformDeck, updatePlatformDeck } from "@/lib/api/decks";
-import { DECK_LEVELS } from "@/lib/constants";
+import {
+  DECK_LEVELS,
+  DECK_SORT_ORDER_HINT,
+  DECK_SORT_ORDER_UNPLACED,
+  parseDeckSortOrder,
+} from "@/lib/constants";
 import { getVariantName } from "@/lib/languages";
 import {
   platformDeckAudioPath,
@@ -45,6 +50,7 @@ type DeckFields = {
   level: DeckLevel;
   forKids: boolean;
   isPremium: boolean;
+  sortOrderText: string;
   tags: string[];
   url: string;
   spotify: string;
@@ -94,6 +100,7 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
       level: deck.level,
       forKids: deck.forKids,
       isPremium: deck.isPremium ?? false,
+      sortOrderText: String(deck.sortOrder),
       // ?? [] covers an API deployed before tags existed — the web app ships
       // independently of it.
       tags: deck.tags ?? [],
@@ -125,6 +132,16 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
       setSnackbar({ message: "Title is required", type: "error" });
       return;
     }
+    // A deck always has a sort order, so blank is rejected along with
+    // out-of-range values rather than read as "clear it".
+    const sortOrder = parseDeckSortOrder(fields.sortOrderText);
+    if (sortOrder === null || sortOrder === "invalid") {
+      setSnackbar({
+        message: `Sort order must be a whole number from 1 to ${DECK_SORT_ORDER_UNPLACED}`,
+        type: "error",
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -133,6 +150,9 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
         level: fields.level,
         forKids: fields.forKids,
         isPremium: fields.isPremium,
+        // Only sent when changed, so saving other fields never rewrites a
+        // sort order someone else placed meanwhile.
+        ...(sortOrder !== deck?.sortOrder ? { sortOrder } : {}),
         tags: fields.tags,
         url: fields.url.trim(),
         spotify: fields.spotify.trim(),
@@ -239,6 +259,19 @@ export function PlatformDeckForm({ deckId }: PlatformDeckFormProps) {
             value={fields.level}
             onValueChange={(value) => setField("level", value as DeckLevel)}
           />
+          <Input
+            label="Sort order"
+            value={fields.sortOrderText}
+            onChangeText={(text) => setField("sortOrderText", text)}
+            keyboardType="numeric"
+          />
+          <Text
+            variant="bodySmall"
+            style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
+          >
+            {DECK_SORT_ORDER_HINT} Compared within the deck&apos;s language and
+            level — keep it unique there.
+          </Text>
           <View style={styles.switchRow}>
             <Text variant="bodyMedium">For kids</Text>
             <Switch

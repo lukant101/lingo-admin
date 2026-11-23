@@ -14,6 +14,11 @@ import {
 } from "@/components/ui/StyledSnackbar";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getAudioDurationMs } from "@/lib/audioDuration";
+import {
+  DECK_SORT_ORDER_HINT,
+  DECK_SORT_ORDER_UNPLACED,
+  parseDeckSortOrder,
+} from "@/lib/constants";
 import { ApiClientError } from "@/lib/api/client";
 import {
   getPlatformDeckDraft,
@@ -76,6 +81,7 @@ type EditState = {
   title: string;
   tags: string[];
   isPremium: boolean;
+  sortOrderText: string;
   cards: CardDraft[];
   coverHorizontal: MediaUpload | null;
   coverVertical: MediaUpload | null;
@@ -91,6 +97,7 @@ type EditAction =
   | { type: "SET_TITLE"; title: string }
   | { type: "SET_TAGS"; tags: string[] }
   | { type: "SET_IS_PREMIUM"; isPremium: boolean }
+  | { type: "SET_SORT_ORDER_TEXT"; sortOrderText: string }
   | { type: "SET_CARDS"; cards: CardDraft[] }
   | { type: "UPDATE_CARD"; index: number; card: Partial<CardDraft> }
   | { type: "ADD_CARD" }
@@ -127,6 +134,8 @@ function editReducer(state: EditState, action: EditAction): EditState {
       return { ...state, tags: action.tags, error: null };
     case "SET_IS_PREMIUM":
       return { ...state, isPremium: action.isPremium, error: null };
+    case "SET_SORT_ORDER_TEXT":
+      return { ...state, sortOrderText: action.sortOrderText, error: null };
     case "SET_CARDS":
       return { ...state, cards: action.cards, error: null };
     case "UPDATE_CARD": {
@@ -174,6 +183,7 @@ function createInitialState(): EditState {
     title: "",
     tags: [],
     isPremium: false,
+    sortOrderText: "",
     cards: [createEmptyCard()],
     coverHorizontal: null,
     coverVertical: null,
@@ -267,6 +277,7 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
         // ?? false covers an API deployed before the tier existed — the web
         // app ships independently of it.
         isPremium: draft.isPremium ?? false,
+        sortOrderText: draft.sortOrder != null ? String(draft.sortOrder) : "",
         cards,
         currentStep: determineInitialStep(draft),
       };
@@ -956,6 +967,32 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
     }
   };
 
+  // Saved on blur like the title. Blank clears it: the deck then publishes
+  // unplaced, after every curated deck of its level.
+  const handleSortOrderBlur = async () => {
+    if (!draft) return;
+    const sortOrder = parseDeckSortOrder(state.sortOrderText);
+    if (sortOrder === "invalid") {
+      dispatch({
+        type: "SET_ERROR",
+        error: `Sort order must be a whole number from 1 to ${DECK_SORT_ORDER_UNPLACED}`,
+      });
+      return;
+    }
+    if (sortOrder === (draft.sortOrder ?? null)) return;
+    dispatch({ type: "SET_SAVING", isSaving: true });
+    try {
+      await patchDraft({ sortOrder });
+    } catch (err) {
+      dispatch({
+        type: "SET_ERROR",
+        error: (err as Error).message || "Failed to save the sort order",
+      });
+    } finally {
+      dispatch({ type: "SET_SAVING", isSaving: false });
+    }
+  };
+
   const handleCardTextBlur = async (cardIndex: number) => {
     if (!draft) return;
     const card = state.cards[cardIndex];
@@ -1265,6 +1302,22 @@ export function PlatformDeckWizard({ draftId }: PlatformDeckWizardProps) {
               Tags (optional)
             </Text>
             <TagEditor tags={state.tags} onChange={handleTagsChange} />
+            <View style={styles.tagsSpacer} />
+            <Input
+              label="Sort order (optional)"
+              value={state.sortOrderText}
+              onChangeText={(text) =>
+                dispatch({ type: "SET_SORT_ORDER_TEXT", sortOrderText: text })
+              }
+              onBlur={handleSortOrderBlur}
+              keyboardType="numeric"
+            />
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              {DECK_SORT_ORDER_HINT} Leave blank to publish it at the end.
+            </Text>
             <View style={styles.tagsSpacer} />
             <View style={styles.premiumRow}>
               <View style={styles.premiumLabel}>

@@ -25,6 +25,11 @@ export type PlatformDeckDraftResponse = {
    * while authoring. Undefined against an API deployed before the field.
    */
   isPremium?: boolean;
+  /**
+   * Carried into the deck's sort order on publish; null publishes the deck
+   * unplaced, at the end. Undefined against an API deployed before the field.
+   */
+  sortOrder?: number | null;
   status: PlatformDeckDraftStatus;
   uploadBasePath: string;
   horizontalImageSourcePath: string | null;

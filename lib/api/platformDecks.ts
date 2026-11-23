@@ -122,6 +122,8 @@ export type UpdatePlatformDeckDraftInput = {
   title?: string;
   /** Subscribers-only; applied to the deck on publish. */
   isPremium?: boolean;
+  /** Applied to the deck on publish; null clears it (the deck sorts last). */
+  sortOrder?: number | null;
   horizontalImageSourcePath?: string;
   verticalImageSourcePath?: string;
   videoSourcePath?: string | null;

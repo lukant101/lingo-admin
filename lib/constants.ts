@@ -37,6 +37,21 @@ export const DECK_SORT_ORDER_HINT =
   "Learners see decks in ascending sort order, from 1 to 999999999: lower numbers are shown first, and 999999999 puts a deck at the end.";
 
 /**
+ * Reads a typed deck sort order. `null` for a blank field, `"invalid"` for
+ * anything outside the API's accepted range.
+ */
+export function parseDeckSortOrder(text: string): number | null | "invalid" {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isInteger(parsed) &&
+    parsed >= 1 &&
+    parsed <= DECK_SORT_ORDER_UNPLACED
+    ? parsed
+    : "invalid";
+}
+
+/**
  * API base URL - should be configured per environment
  */
 export const API_BASE_URL =
