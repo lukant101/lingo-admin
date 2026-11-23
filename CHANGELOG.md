@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.13] - Unreleased
+
+### Added
+
+- A deck's sort order — its place in the learner feed, ascending within its
+  language and level — can be set on the deck's edit page, and on a draft at
+  the wizard's Review & Publish step. Until now the admin only showed it, and
+  placing a deck took a direct API call or the scripts repo's
+  `assign_deck_sort_order.py`. The draft's is optional: left blank, the deck
+  publishes at the end.
+
 ## [0.2.12] - 2026-10-29
 
 ### Added
